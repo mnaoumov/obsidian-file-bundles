@@ -1,0 +1,10 @@
+{
+  "author": "mnaoumov",
+  "authorUrl": "https://github.com/mnaoumov/",
+  "description": "Declare which files and folders a file depends on, and move, rename or delete them as one locked bundle.",
+  "fundingUrl": "https://www.buymeacoffee.com/mnaoumov",
+  "id": "file-bundles",
+  "isDesktopOnly": false,
+  "name": "File Bundles",
+  "version": "0.0.0"
+}

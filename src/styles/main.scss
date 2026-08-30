@@ -1,0 +1,29 @@
+/**
+ * See default library styles: https://github.com/mnaoumov/obsidian-dev-utils/blob/main/src/styles/main.scss
+ * See available library css classes: https://github.com/mnaoumov/obsidian-dev-utils/blob/main/src/CssClass.ts
+ */
+
+.file-bundles.obsidian-dev-utils {
+  /* Override library styles */
+}
+
+/*
+ * A bundle's main file, shown in the File Explorer with the dependents that travel with it folded away.
+ * The marker has to read as "there is more here" without competing with the file name, so it is a muted
+ * glyph rather than a color, and it never shifts the row's layout.
+ */
+.file-bundles-main > .tree-item-inner::after {
+  color: var(--text-faint);
+  content: '\29C9';
+  font-size: var(--font-smaller);
+  margin-inline-start: var(--size-4-1);
+}
+
+/*
+ * An unlocked bundle still shows its dependents, so the members are dimmed instead of hidden. Dimming is
+ * display only: the files stay in the vault index and stay resolvable as link targets, which is what
+ * separates an unlocked bundle from an excluded path.
+ */
+.file-bundles-dependent > .tree-item-inner {
+  opacity: 0.6;
+}

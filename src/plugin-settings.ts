@@ -37,4 +37,13 @@ export class PluginSettings {
    * its own declaration.
    */
   public shouldRenameDependents = false;
+
+  /**
+   * The main files of the bundles the user has unlocked.
+   *
+   * State rather than preference, so it is deliberately not in the settings tab. An unlocked bundle shows
+   * its dependents in the File Explorer and stops propagating operations, and locking it again restores
+   * both — the declaration in the note is never touched either way.
+   */
+  public unlockedBundleMainPaths: readonly string[] = [];
 }

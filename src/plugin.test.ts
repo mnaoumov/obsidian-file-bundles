@@ -13,6 +13,7 @@ import {
   vi
 } from 'vitest';
 
+import { BundleExplorerComponent } from './bundle-explorer-component.ts';
 import { BundleIndexComponent } from './bundle-index-component.ts';
 import { BundleOperationsComponent } from './bundle-operations-component.ts';
 import { FileBundlesComponent } from './file-bundles-component.ts';
@@ -71,6 +72,13 @@ vi.mock('./plugin-settings-tab.ts', () => ({
 vi.mock('./bundle-index-component.ts', () => ({
   // eslint-disable-next-line prefer-arrow-callback, func-names -- mock must be constructable with `new` and return a real loadable Component.
   BundleIndexComponent: vi.fn(function () {
+    return new Component();
+  })
+}));
+
+vi.mock('./bundle-explorer-component.ts', () => ({
+  // eslint-disable-next-line prefer-arrow-callback, func-names -- mock must be constructable with `new` and return a real loadable Component.
+  BundleExplorerComponent: vi.fn(function () {
     return new Component();
   })
 }));
@@ -137,6 +145,7 @@ describe('Plugin', () => {
     expect(PluginSettingsTab).toHaveBeenCalledOnce();
     expect(PluginSettingsTabComponent).toHaveBeenCalledOnce();
     expect(BundleIndexComponent).toHaveBeenCalledOnce();
+    expect(BundleExplorerComponent).toHaveBeenCalledOnce();
     expect(BundleOperationsComponent).toHaveBeenCalledOnce();
     expect(FileBundlesComponent).toHaveBeenCalledOnce();
   });

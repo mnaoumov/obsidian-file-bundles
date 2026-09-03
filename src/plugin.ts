@@ -5,6 +5,7 @@ import { PluginDataHandler } from 'obsidian-dev-utils/obsidian/data-handler';
 import { PluginBase } from 'obsidian-dev-utils/obsidian/plugin/plugin';
 import { PluginEventSourceImpl } from 'obsidian-dev-utils/obsidian/plugin/plugin-event-source';
 
+import { BundleExplorerComponent } from './bundle-explorer-component.ts';
 import { BundleIndexComponent } from './bundle-index-component.ts';
 import { BundleOperationsComponent } from './bundle-operations-component.ts';
 import { FileBundlesComponent } from './file-bundles-component.ts';
@@ -33,6 +34,14 @@ export class Plugin extends PluginBase {
     const bundleIndexComponent = this.addChild(
       new BundleIndexComponent({
         app: this.app,
+        pluginSettingsComponent
+      })
+    );
+
+    this.addChild(
+      new BundleExplorerComponent({
+        app: this.app,
+        bundleIndexComponent,
         pluginSettingsComponent
       })
     );

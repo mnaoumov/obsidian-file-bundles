@@ -27,3 +27,12 @@
 .file-bundles-dependent > .tree-item-inner {
   opacity: 0.6;
 }
+
+/*
+ * A locked bundle's dependent, folded away so the File Explorer shows the bundle as one thing. Display
+ * only: the file stays in the vault index and stays resolvable as a link target, which is the whole
+ * difference between a locked bundle and an excluded folder.
+ */
+.file-bundles-hidden {
+  display: none;
+}

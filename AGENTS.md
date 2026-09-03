@@ -14,7 +14,7 @@ Idea captured from a Discord exchange with `rakudo` (2026-08-24 to 2026-08-26) a
 
 **Scaffold only.** The plugin registers one command that reports the active file and shows a placeholder notice; the declaration parser, the bundle index, the operations and the File Explorer hiding are not written yet. `README.md` and the demo vault describe the plugin as it is being built to be — the same state `alias-quick-switcher` and `advanced-markdown-export` shipped their scaffolds in. Do not treat their claims as implemented behavior, and do not release until they are.
 
-The build is tracked as `T740-P48`.
+The build is tracked as `T741-P48`.
 
 ## The declaration
 
@@ -37,7 +37,7 @@ file-bundles:
 ```
 
 - **The frontmatter key is the marker, never the file name.** A markdown main declares inline; a binary main gets a sidecar note carrying the same key with an explicit `main`. `main` defaults to the declaring file, so both are one code path.
-- **`files` holds links, in either syntax.** Obsidian's own cache indexes wikilinks in frontmatter; markdown links in frontmatter are indexed only because Frontmatter Markdown Links adds them, so the free rewrite-on-rename holds for the markdown form only when that plugin is installed. Say so in the README rather than depend on it.
+- **`files` holds links, in either syntax.** Obsidian's own cache indexes both in frontmatter, wikilinks and markdown links alike, and emits them under dotted nested keys (`file-bundles.files.0`) — measured, see below, and no longer dependent on Frontmatter Markdown Links. What it does *not* preserve is the anchoring: its rename bookkeeping rewrites an entry into its own shortest-path style and strips the `./` / `/` prefix, which is why this plugin re-anchors the declaration rather than trusting the rewrite.
 - **`folders` accepts an explicit path or a folder-note link.** Obsidian has no folder link, so a path is the form that always works and this plugin rewrites it off `vault.on('rename')` for a `TFolder`. A link to a folder's folder note survives renames for free and is how the owner's own vault is organized, so both are supported. A link means the folder because it is under `folders`; the same link under `files` would mean the note itself.
 - **Every path is explicitly relative (`./…`) or explicitly rooted (`/…`).** A bare `assets/alpha` is rejected, not guessed at: a sidecar can live anywhere, so the base is genuinely ambiguous and Obsidian's shortest-path resolution would silently pick one.
 - **`main` and the declaring note are implicit members** and are never listed.
@@ -65,11 +65,21 @@ The workspace convention is that all plugins share the same architecture; intent
 
 - **None yet.**
 
+## What the real app actually does (measured 2026-09-02 against Obsidian 1.14.0)
+
+Measured over CDP with three throwaway `evalInObsidian` probes (G54), which were deleted afterwards. These findings replace the questions that used to stand here; do not re-open them without re-measuring.
+
+- **Nested frontmatter links are indexed.** Obsidian emits `frontmatterLinks` entries with dotted keys — `file-bundles.files.0`, `.1`, `.2` — for a link nested two levels under the declaration key, in the wikilink form *and* the markdown form. **Markdown links in frontmatter are indexed natively as of 1.14.0**: Frontmatter Markdown Links is not required for the cache to see them, so the earlier note that the markdown form only works when that plugin is installed no longer holds.
+- **The free rename bookkeeping is real, and hostile to this declaration format.** Obsidian rewrites the entry in its own shortest-path style and **strips the mandatory prefix**: renaming `A/assets/diagram.png` turned `[[./assets/diagram.png]]` into `[[diagram-renamed.png]]`, and `[./notes.pdf](./notes.pdf)` into `[notes-renamed.pdf](notes-renamed.pdf)`. Moving the *declaring* note from `A/` to `B/` does the same to every relative entry (`[[./assets/diagram.png]]` becomes `[[diagram.png]]`, still resolving to the file left behind in `A/assets/`), while leaving a rooted `[[/shared/logo.png]]` untouched — Obsidian rewrites a link only when the link text has to change.
+  - **Consequence: this plugin owns a re-anchoring pass.** A declaration Obsidian has rewritten no longer carries the `./` or `/` the format requires, so left alone a bundle would silently dissolve after an ordinary drag in the File Explorer. Any member link that still resolves but has lost its prefix is rewritten back to the anchored form. Rejecting a bare path on input and healing one on rewrite are the same rule seen from two sides, not a softening of it.
+- **`folders` entries are never touched, because they are paths and not links.** `./assets` survived both a rename of that folder and a move of the declaring note — after which it silently named a different, non-existent folder. Rewriting them off `vault.on('rename')` is this plugin's job, as designed.
+- **Both prefixes resolve.** From `A/main.md`, `metadataCache.getFirstLinkpathDest` answered `A/assets/diagram.png` for `./assets/diagram.png` and `shared/logo.png` for `/shared/logo.png`. Member paths are still resolved by this plugin's own path math, which is deterministic and unit-testable with no `App`; the measurement only confirms that nothing else resolves them differently.
+- **Delete is safe to react to post-hoc, and coexistence holds.** With Advanced Rename and Delete Handler installed and enabled beside it, both plugins load. `vault.on('delete')` fires with the main file already gone from the vault and every declared member still present, untouched by that plugin's own cleanup.
+- **Consequence for both delete and move: the bundle index is the source of truth at operation time.** The declaration cannot be re-read after the fact — on delete the file is gone, and on move Obsidian has already rewritten it. Membership is captured from the index before mutating, never by parsing afterwards.
+
 ## Open questions the build has to answer
 
-- **Nested frontmatter links.** Frontmatter Markdown Links resolves Obsidian's own `frontmatterLinks` entries with `getNestedPropertyValue(frontmatter, link.key)`, so Obsidian emits dotted nested keys and a link at `file-bundles.files.0` should be indexed and rewritten. Measure it over CDP against a real Obsidian before relying on it, and measure the `./` and `/` prefixes in the same pass: ODU parses both forms, but whether Obsidian's cache *resolves and rewrites* them inside nested frontmatter is the load-bearing claim. If it does not hold, this plugin rewrites those entries itself — the same code path `folders` needs anyway.
-- **Delete.** `vault.on('delete')` fires after the fact and there is no pre-delete hook, so a bundle delete either intercepts the entry point or reacts post-hoc — and Advanced Rename and Delete Handler's own cleanup is already acting on the same event. Measure the ordering rather than assuming it.
-- **Duplicate.** Obsidian has no duplicate-file event to intercept, so a bundle-aware duplicate is almost certainly a command of this plugin's own.
+- **Duplicate.** Obsidian has no duplicate-file event to intercept, so a bundle-aware duplicate is a command of this plugin's own.
 - **Relationship to Advanced Markdown Export.** Its `src/dependency-resolver.ts` walks *discovered* dependencies (links, embeds, canvas); this plugin acts on *declared* ones. Different sources of truth, so the graph layer does not share cleanly — worth a look, not a blocker.
 
 ## Naming and licensing decisions

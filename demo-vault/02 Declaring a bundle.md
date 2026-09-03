@@ -46,11 +46,14 @@ The main file and the note that declares the bundle are always members. You neve
 
 ## Paths say which base they mean
 
-Every path is either explicitly relative (`./Trip assets`) or explicitly rooted at the vault (`/Shared/Brand`). A bare `Trip assets` is rejected rather than guessed at: a sidecar can live anywhere, so it would be ambiguous between the note's own folder and the vault root, and Obsidian's shortest-path link resolution would silently pick one.
+Every path is either explicitly relative (`./Trip assets`, or `../Elsewhere/Route.svg` when it has to climb out of the note's folder) or explicitly rooted at the vault (`/Shared/Brand`). A bare `Trip assets` is rejected rather than guessed at: a sidecar can live anywhere, so it would be ambiguous between the note's own folder and the vault root, and Obsidian's shortest-path link resolution would silently pick one.
 
-## Why links, and where the free bookkeeping ends
+**The two forms mean different things when the main file moves.** A relative member is anchored to the main file and travels with it. A rooted member states a home of its own and stays where it is — which is what you want for a shared logo that several bundles point at.
 
-A link in `files` is a real link as far as Obsidian is concerned, so renaming or moving the file it points at rewrites the declaration for you. Two limits are worth knowing:
+## Why links, and who keeps them correct
 
-- markdown links in frontmatter are only indexed when [Frontmatter Markdown Links](https://github.com/mnaoumov/obsidian-frontmatter-markdown-links) is installed, so without it the wikilink form is the one that stays correct by itself;
-- Obsidian has no folder link at all, so a path under `folders` is kept correct by this plugin rather than by Obsidian. A link to a folder's **folder note** is the one form that survives a rename for free, and it is accepted here for exactly that reason.
+A link in `files` is a real link as far as Obsidian is concerned: it appears in the metadata cache, and moving the file it points at rewrites the declaration. Both syntaxes are indexed natively — the wikilink form and the markdown form alike — so [Frontmatter Markdown Links](https://github.com/mnaoumov/obsidian-frontmatter-markdown-links) is not needed for the cache to see them.
+
+What that free rewrite does **not** preserve is the anchoring. Obsidian rewrites a frontmatter link into its own shortest-path style, dropping the `./` or `/` this format requires, so `[[./Trip assets/Route.svg]]` comes back as `[[Route.svg]]`. Left alone, the bundle would quietly dissolve the first time you dragged its main file somewhere else. So this plugin writes the anchoring back after every move — which is why the declaration you wrote is still the declaration you see afterwards.
+
+Obsidian has no folder link at all, so a path under `folders` is kept correct by this plugin rather than by Obsidian. A link to a folder's **folder note** is the one form that survives a rename for free, and it is accepted here for exactly that reason.

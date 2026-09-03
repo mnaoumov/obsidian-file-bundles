@@ -11,3 +11,4 @@ Then open [01 Bundles](<./01 Bundles.md>). Notes in this vault carry **code butt
 - [01 Bundles](<./01 Bundles.md>)
 - [02 Declaring a bundle](<./02 Declaring a bundle.md>)
 - [03 Settings](<./03 Settings.md>)
+- [04 Locking and unlocking](<./04 Locking and unlocking.md>)

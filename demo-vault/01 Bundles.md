@@ -30,6 +30,21 @@ require('/demoSetup.ts').runCommand(app, 'show-bundle');
 
 Manual equivalent: run the Command Palette entry **File Bundles: Show the bundle the active file belongs to**.
 
+## Delete the whole bundle
+
+Deleting a bundle deletes its main file and everything the declaration names — except anything another bundle also claims, which is left alone.
+
+```code-button
+---
+caption: Delete the bundle of the active file
+---
+require('/demoSetup.ts').runCommand(app, 'delete-bundle');
+```
+
+Manual equivalent: **File Bundles: Delete the bundle the active file belongs to**, or right-click any file the bundle claims and choose **Delete bundle**.
+
+This is the same route a bundle takes when you delete its main file any other way: the command only trashes the main file, and the ordinary deletion path carries the rest.
+
 ## What it does not take over
 
 This plugin never registers a rename/delete handler of its own. Updating the links to a renamed note, and moving the attachments it owns, belong to [Advanced Rename and Delete Handler](https://github.com/mnaoumov/obsidian-advanced-rename-and-delete-handler) — one vault, one owner of that behavior. File Bundles moves only the dependents a bundle declares.

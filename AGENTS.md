@@ -12,7 +12,9 @@ Idea captured from a Discord exchange with `rakudo` (2026-08-24 to 2026-08-26) a
 
 ## Current state
 
-**Scaffold only.** The plugin registers one command that reports the active file and shows a placeholder notice; the declaration parser, the bundle index, the operations and the File Explorer hiding are not written yet. `README.md` and the demo vault describe the plugin as it is being built to be — the same state `alias-quick-switcher` and `advanced-markdown-export` shipped their scaffolds in. Do not treat their claims as implemented behavior, and do not release until they are.
+**Built, not yet released.** The declaration parser, the bundle index, the transactional operations and the display-only File Explorer hiding are all in place, wired together, and covered by unit tests at 100% plus four behavioral integration suites that pass against a real Obsidian 1.14.0 (move, rename, delete, unlock). `README.md` and the demo vault describe what the plugin actually does.
+
+**Duplicate is the one operation of the four that is NOT built.** ODU's `VaultTransaction` has no `copy` and its `create()` takes a `string`, so a bundle holding an image or a PDF cannot be duplicated through it — and the alternatives are the hand-rolled rollback this plugin's invariants forbid, or a command silently correct for notes and lossy for attachments. Tracked as `T941-P48`, blocked on `T940-P1`. Neither the README nor the demo vault promises it, so nothing needs correcting when it lands — only adding.
 
 The build is tracked as `T741-P48`.
 
@@ -47,9 +49,12 @@ file-bundles:
 Four layers. The bottom three carry all the correctness risk and are unit-testable with no DOM and no `App`.
 
 - `src/bundle-declaration.ts` — parse and write the `file-bundles` key: both link forms, the mandatory `./` / `/` prefix, folder paths vs folder-note links, the implicit-`main` rule. Link handling goes through `obsidian-dev-utils/obsidian/link.ts` (`hasLeadingDot()` / `hasLeadingSlash()`), never a local regex. Folder notes resolve through ODU's `resolveFolderNoteConfig({ app })` / `resolveFolderNote` with `FolderNoteLocation.Auto`.
-- `src/bundle-index.ts` — `mainPath` to members, and the reverse `memberPath` to `mainPath`, maintained incrementally off `metadataCache.on('changed')` and the vault's create/rename/delete events.
-- `src/bundle-operations.ts` — move, rename, delete and duplicate, over ODU's `VaultTransaction`.
-- `src/bundle-explorer-component.ts` — display-only hiding in the File Explorer, plus the unlock affordance.
+- `src/bundle-index.ts` — `mainPath` to members, and the reverse `memberPath` to the mains claiming it (a SET, because a shared dependent is the case the delete rule turns on). Pure: no `App`, no events.
+- `src/bundle-index-component.ts` — keeps that index current off `metadataCache.on('changed')` and the vault's create/rename/delete events, and reports a bundle's own file moving or going **before** it updates itself.
+- `src/bundle-operations.ts` — the planners (pure, so every propagation rule is testable without a vault) and the executors, over ODU's `VaultTransaction`.
+- `src/bundle-operations-component.ts` — subscribes to those pre-mutation reports and performs the operation.
+- `src/bundle-explorer-component.ts` — display-only hiding in the File Explorer.
+- `src/file-bundles-component.ts` — the commands and the File Explorer menu items.
 
 ## Invariants that are easy to break
 
@@ -58,6 +63,9 @@ Four layers. The bottom three carry all the correctness risk and are unit-testab
 - **Explorer hiding is display only.** Advanced Exclude hides files by removing them from the vault index (adapter patches, an IndexedDB projection). That is correct for exclusion and wrong here: bundle dependents must stay indexed and resolvable as link targets, which is the whole difference between a locked bundle and an excluded path. Its `src/file-tree-component.ts` is the in-fleet reference for touching the file tree; its index-projection machinery is not.
 - **A file two bundles declare is never deleted with one of them.** Advanced Rename and Delete Handler already solves the equivalent for attachments through `GetRescuePathParams.survivingNotePaths`; the same shape applies.
 - **Resolving a folder note never creates one.** A folder with no folder note is simply not a valid `folders` link.
+- **`../` is explicitly relative, exactly as `./` is.** The library's `hasLeadingDot()` answers only for `./`, and this plugin's own re-anchoring emits `../` whenever a main file has moved away from a dependent — so treating `../` as unprefixed made the plugin reject its own output, re-infer the anchoring as rooted, and quietly stop moving that dependent. Found by the integration suite, never by a unit test.
+- **The index reports a change BEFORE making it, and that ordering is the design.** `vault.on('delete')` fires after the fact and a move is followed by Obsidian rewriting the declaration, so nothing downstream can reconstruct what went with a file once the index has caught up. Do not replace the pre-mutation handlers with ordinary event subscriptions "in the right order" — that makes correctness depend on registration order between two components.
+- **Unlocking stops PROPAGATION, not bookkeeping.** An unlocked bundle still gets its declaration re-anchored, because Obsidian strips the prefixes either way and a declaration left in that state stops parsing. The unlocked list is keyed by main path and is kept pointing at the bundle as it moves, or a moved bundle silently locks itself again.
 
 ## Deviations from the standard plugin architecture
 
@@ -79,7 +87,6 @@ Measured over CDP with three throwaway `evalInObsidian` probes (G54), which were
 
 ## Open questions the build has to answer
 
-- **Duplicate.** Obsidian has no duplicate-file event to intercept, so a bundle-aware duplicate is a command of this plugin's own.
 - **Relationship to Advanced Markdown Export.** Its `src/dependency-resolver.ts` walks *discovered* dependencies (links, embeds, canvas); this plugin acts on *declared* ones. Different sources of truth, so the graph layer does not share cleanly — worth a look, not a blocker.
 
 ## Naming and licensing decisions

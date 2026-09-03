@@ -51,11 +51,22 @@ file-bundles:
 
 **Every path is explicitly relative (`./assets`) or explicitly rooted (`/shared/brand`).** A sidecar can live anywhere, so a bare `assets` would be ambiguous between the declaring file and the vault root, and this plugin would rather reject it than guess.
 
+The two forms mean different things when the main file moves: a relative member is anchored to the main file and travels with it, while a rooted member states a home of its own and stays put. That is what makes a shared logo shareable.
+
 The main file and the note that declares the bundle are always members. You never list them.
 
 ## Usage
 
-Run **File Bundles: Show the bundle the active file belongs to** to see what travels with the file you are looking at.
+Three commands, and the same actions on the File Explorer's context menu for any file a bundle claims:
+
+- **File Bundles: Show the bundle the active file belongs to**
+  - reports what travels with the file you are looking at, whether it is a main file or one of its dependents.
+- **File Bundles: Lock or unlock the bundle the active file belongs to**
+  - unlocking reveals the dependents and stops anything propagating; locking again restores both. Your note is never edited either way.
+- **File Bundles: Delete the bundle the active file belongs to**
+  - deletes the main file and everything the declaration names, except anything another bundle also claims.
+
+Moving and renaming need no command: a bundle follows its main file wherever you drag it.
 
 ## Demo vault
 

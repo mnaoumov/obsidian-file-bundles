@@ -1,8 +1,20 @@
 # File Bundles
 
-[![Buy Me a Coffee](https://img.shields.io/badge/Buy%20Me%20a%20Coffee-ffdd00?logo=buy-me-a-coffee&logoColor=black)](https://www.buymeacoffee.com/mnaoumov) [![GitHub release](https://img.shields.io/github/v/release/mnaoumov/obsidian-file-bundles)](https://github.com/mnaoumov/obsidian-file-bundles/releases) [![GitHub downloads](https://img.shields.io/github/downloads/mnaoumov/obsidian-file-bundles/total)](https://github.com/mnaoumov/obsidian-file-bundles/releases)
+[![Buy Me a Coffee](https://img.shields.io/badge/Buy%20Me%20a%20Coffee-ffdd00?logo=buy-me-a-coffee&logoColor=black)](https://www.buymeacoffee.com/mnaoumov) [![GitHub release](https://img.shields.io/github/v/release/mnaoumov/obsidian-file-bundles)](https://github.com/mnaoumov/obsidian-file-bundles/releases) [![GitHub downloads](https://img.shields.io/github/downloads/mnaoumov/obsidian-file-bundles/total)](https://github.com/mnaoumov/obsidian-file-bundles/releases) [![Coverage: 100%](https://img.shields.io/badge/coverage-100%25-brightgreen)](https://github.com/mnaoumov/obsidian-file-bundles)
 
 An HTML page and the assets it loads, a note and the images pasted into it, a scanned invoice and the note describing it — these are one thing to you and several files to Obsidian. Move the main file and the rest stay behind. Delete it and they are orphaned. This plugin lets a file declare which files and folders belong with it, and then treats them as one **bundle**: what happens to the main file happens to the whole thing.
+
+## Demo vault
+
+**The documentation is a demo vault.** Every feature has a note that explains what it does, with a worked example you can search yourself.
+
+**[Start reading here](<./demo-vault/00 Start.md>)** — it is plain markdown, so it works on GitHub with nothing installed.
+
+A copy of the vault ships with every release. You can access it via any of the following:
+
+1. Running the **File Bundles: Open demo vault** command.
+2. Downloading `file-bundles-demo-vault-<version>.zip` (`<version>` is the release version) from the [Releases](https://github.com/mnaoumov/obsidian-file-bundles/releases).
+3. Browsing its source in [`demo-vault/`](./demo-vault/README.md) in this repository.
 
 ## What makes it different
 
@@ -67,18 +79,6 @@ Three commands, and the same actions on the File Explorer's context menu for any
   - deletes the main file and everything the declaration names, except anything another bundle also claims.
 
 Moving and renaming need no command: a bundle follows its main file wherever you drag it.
-
-## Demo vault
-
-**The documentation is a demo vault.** Every feature has a note that explains what it does, with a worked example you can search yourself.
-
-**[Start reading here](<./demo-vault/00 Start.md>)** — it is plain markdown, so it works on GitHub with nothing installed.
-
-A copy of the vault ships with every release. You can access it via any of the following:
-
-1. Running the **File Bundles: Open demo vault** command.
-2. Downloading `file-bundles-demo-vault-<version>.zip` (`<version>` is the release version) from the [Releases](https://github.com/mnaoumov/obsidian-file-bundles/releases).
-3. Browsing its source in [`demo-vault/`](./demo-vault/README.md) in this repository.
 
 ## Installation
 

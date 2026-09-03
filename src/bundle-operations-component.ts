@@ -81,6 +81,28 @@ export class BundleOperationsComponent extends ComponentEx {
     });
   }
 
+  /**
+   * Keeps the unlocked list pointing at the bundle it unlocked.
+   *
+   * The list is keyed by main path, so a move would otherwise leave it naming a file that no longer exists —
+   * and the bundle would silently lock itself again the moment the user moved it.
+   */
+  private async followUnlockedMainPath(oldMainPath: string, newMainPath: string): Promise<void> {
+    if (oldMainPath === newMainPath) {
+      return;
+    }
+
+    const { unlockedBundleMainPaths } = this.pluginSettingsComponent.settings;
+    if (!unlockedBundleMainPaths.includes(oldMainPath)) {
+      return;
+    }
+
+    await this.pluginSettingsComponent.editAndSave((settings) => {
+      settings.unlockedBundleMainPaths = settings.unlockedBundleMainPaths
+        .map((path) => path === oldMainPath ? newMainPath : path);
+    });
+  }
+
   private async handleDelete(event: BundleDeleteEvent): Promise<void> {
     if (!this.pluginSettingsComponent.settings.shouldPropagateDeletions) {
       return;
@@ -101,24 +123,28 @@ export class BundleOperationsComponent extends ComponentEx {
 
   private async handleRename(event: BundleRenameEvent): Promise<void> {
     for (const declaration of event.declarations) {
-      if (this.isUnlocked(declaration)) {
-        continue;
-      }
-
-      const moves = [
-        ...planBundleMove({
-          declaration,
-          newPath: event.newPath,
-          oldPath: event.oldPath
-        }),
-        ...planBundleRename({
-          declaration,
-          newPath: event.newPath,
-          oldPath: event.oldPath,
-          shouldRenameDependents: declaration.renameDependents
-            ?? this.pluginSettingsComponent.settings.shouldRenameDependents
-        })
-      ];
+      /*
+       * An unlocked bundle moves nothing, but its declaration is still maintained. Unlocking means "do not
+       * move my files", not "let the declaration rot": Obsidian has just stripped the anchoring off every
+       * entry, and leaving it that way would mean a bundle that no longer parses by the time it is locked
+       * again.
+       */
+      const moves = this.isUnlocked(declaration)
+        ? []
+        : [
+          ...planBundleMove({
+            declaration,
+            newPath: event.newPath,
+            oldPath: event.oldPath
+          }),
+          ...planBundleRename({
+            declaration,
+            newPath: event.newPath,
+            oldPath: event.oldPath,
+            shouldRenameDependents: declaration.renameDependents
+              ?? this.pluginSettingsComponent.settings.shouldRenameDependents
+          })
+        ];
 
       await applyBundleMoves({ app: this.app, moves });
 
@@ -127,14 +153,18 @@ export class BundleOperationsComponent extends ComponentEx {
        * shortest-path style, stripping the prefixes the format requires, so this is what puts the anchoring
        * back before the next read rejects them.
        */
+      const movedDeclaration = toMovedDeclaration({
+        declaration,
+        moves,
+        newPath: event.newPath,
+        oldPath: event.oldPath
+      });
+
+      await this.followUnlockedMainPath(declaration.mainPath, movedDeclaration.mainPath);
+
       await rewriteBundleDeclaration({
         app: this.app,
-        declaration: toMovedDeclaration({
-          declaration,
-          moves,
-          newPath: event.newPath,
-          oldPath: event.oldPath
-        }),
+        declaration: movedDeclaration,
         frontmatterKey: this.pluginSettingsComponent.settings.frontmatterKey
       });
     }

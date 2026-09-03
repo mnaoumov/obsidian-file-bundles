@@ -22,7 +22,8 @@ import { parseLink } from 'obsidian-dev-utils/obsidian/parse-link';
 import {
   dirname,
   join,
-  normalizePath
+  normalizePath,
+  relative
 } from 'obsidian-dev-utils/path';
 
 /**
@@ -244,6 +245,7 @@ export interface ParseBundleDeclarationResult {
 const FILES_KEY = 'files';
 const FOLDERS_KEY = 'folders';
 const MAIN_KEY = 'main';
+const PARENT_PREFIX = '../';
 const RELATIVE_PREFIX = './';
 const RENAME_DEPENDENTS_KEY = 'renameDependents';
 const ROOTED_PREFIX = '/';
@@ -297,9 +299,13 @@ export function formatBundleMemberEntry(params: FormatBundleMemberEntryParams): 
   } = params;
 
   if (member.kind === BundleMemberKind.Folder) {
-    return member.anchoring === BundleMemberAnchoring.Relative
-      ? `${RELATIVE_PREFIX}${toRelativePath(dirname(declaringPath), member.path)}`
-      : `${ROOTED_PREFIX}${member.path}`;
+    if (member.anchoring === BundleMemberAnchoring.Rooted) {
+      return `${ROOTED_PREFIX}${member.path}`;
+    }
+
+    // A path that has to climb out of the declaring note's folder is already explicitly relative.
+    const relativePath = relative(dirname(declaringPath), member.path);
+    return relativePath.startsWith(PARENT_PREFIX) ? relativePath : `${RELATIVE_PREFIX}${relativePath}`;
   }
 
   return generateMarkdownLink({
@@ -586,7 +592,9 @@ function resolveLinkEntry(params: ResolveEntryParams): null | ResolvedEntry {
 
   const target = parseLinkResult?.url ?? entry;
   const { linkPath } = splitSubpath(target);
-  const isRelative = parseLinkResult ? hasLeadingDot(entry) : linkPath.startsWith(RELATIVE_PREFIX);
+  //  Is explicitly relative too, and the library's helper only answers for the  form.
+  const isRelative = (parseLinkResult ? hasLeadingDot(entry) : linkPath.startsWith(RELATIVE_PREFIX))
+    || linkPath.startsWith(PARENT_PREFIX);
   const isRooted = parseLinkResult ? hasLeadingSlash(entry) : linkPath.startsWith(ROOTED_PREFIX);
 
   // A bare path carries no syntax, so it is written back as a wikilink — the form Obsidian's cache indexes.
@@ -670,7 +678,7 @@ function resolvePathEntry(params: ResolveEntryParams): null | ResolvedEntry {
     problems
   } = params;
 
-  if (entry.startsWith(RELATIVE_PREFIX)) {
+  if (entry.startsWith(RELATIVE_PREFIX) || entry.startsWith(PARENT_PREFIX)) {
     return {
       anchoring: BundleMemberAnchoring.Relative,
       isAnchorPrefixMissing: false,
@@ -702,9 +710,4 @@ function toEntryList(rawValue: unknown): unknown[] {
   }
 
   return Array.isArray(rawValue) ? rawValue : [rawValue];
-}
-
-function toRelativePath(declaringFolderPath: string, path: string): string {
-  const prefix = `${declaringFolderPath}/`;
-  return declaringFolderPath === VAULT_ROOT_FOLDER_PATH || !path.startsWith(prefix) ? path : path.slice(prefix.length);
 }

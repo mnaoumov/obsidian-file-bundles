@@ -1,4 +1,5 @@
 import { sleep } from 'obsidian-dev-utils/async';
+import { noopAsync } from 'obsidian-dev-utils/function';
 import { castTo } from 'obsidian-dev-utils/object-utils';
 import { strictProxy } from 'obsidian-dev-utils/strict-proxy';
 import { App } from 'obsidian-test-mocks/obsidian';
@@ -94,7 +95,13 @@ describe('BundleOperationsComponent', () => {
           renameHandlers.push(handler);
         }
       }),
-      pluginSettingsComponent: strictProxy<PluginSettingsComponent>({ settings })
+      pluginSettingsComponent: strictProxy<PluginSettingsComponent>({
+        editAndSave: async (settingsEditor: (settings: PluginSettings) => void) => {
+          settingsEditor(settings);
+          await noopAsync();
+        },
+        settings
+      })
     });
     component.load();
     return component;
@@ -178,7 +185,7 @@ describe('BundleOperationsComponent', () => {
       expect(readFile('Beta/alpha.md')).toContain('[[./assets/diagram.png]]');
     });
 
-    it('should do nothing to an unlocked bundle', async () => {
+    it('should move nothing for an unlocked bundle', async () => {
       settings.unlockedBundleMainPaths = [ALPHA_PATH];
       createComponent();
 
@@ -189,6 +196,88 @@ describe('BundleOperationsComponent', () => {
       });
 
       expect(app.vault.getFileByPath('Alpha/assets/diagram.png')).not.toBeNull();
+    });
+
+    /*
+     * Unlocking says "do not move my files", not "let the declaration rot". Obsidian has just stripped the
+     * anchoring off every entry, and leaving it that way would mean a bundle that no longer parses by the
+     * time it is locked again.
+     */
+    it('should still put the anchoring back for an unlocked bundle', async () => {
+      settings.unlockedBundleMainPaths = [ALPHA_PATH];
+      createComponent();
+
+      await fireRename({
+        declarations: [createDeclaration({ rootedPaths: ['Shared/logo.png'] })],
+        newPath: 'Beta/alpha.md',
+        oldPath: ALPHA_PATH
+      });
+
+      expect(readFile('Beta/alpha.md')).toContain('/Shared/logo.png');
+    });
+
+    /*
+     * The unlocked list is keyed by main path, so without this a moved bundle would silently lock itself
+     * again — the list would be naming a file that no longer exists.
+     */
+    it('should keep the unlocked list pointing at the bundle it unlocked', async () => {
+      settings.unlockedBundleMainPaths = [ALPHA_PATH];
+      createComponent();
+
+      await fireRename({
+        declarations: [createDeclaration({ relativePaths: ['Alpha/assets/diagram.png'] })],
+        newPath: 'Beta/alpha.md',
+        oldPath: ALPHA_PATH
+      });
+
+      expect(settings.unlockedBundleMainPaths).toEqual(['Beta/alpha.md']);
+    });
+
+    it('should keep every other unlocked bundle in the list untouched', async () => {
+      settings.unlockedBundleMainPaths = ['Gamma/gamma.md', ALPHA_PATH];
+      createComponent();
+
+      await fireRename({
+        declarations: [createDeclaration({ relativePaths: ['Alpha/assets/diagram.png'] })],
+        newPath: 'Beta/alpha.md',
+        oldPath: ALPHA_PATH
+      });
+
+      expect(settings.unlockedBundleMainPaths).toEqual(['Gamma/gamma.md', 'Beta/alpha.md']);
+    });
+
+    /*
+     * Renaming a sidecar note does not move the main file it names, so there is no main path to follow.
+     */
+    it('should leave the unlocked list alone when the main file did not move', async () => {
+      createFile('Alpha/notes.md', '---\nfile-bundles: {}\n---\n');
+      createFile('Alpha/report.html');
+      settings.unlockedBundleMainPaths = ['Alpha/report.html'];
+      createComponent();
+
+      await fireRename({
+        declarations: [createDeclaration({
+          declaringPath: 'Alpha/report.html.md',
+          mainPath: 'Alpha/report.html'
+        })],
+        newPath: 'Alpha/notes.md',
+        oldPath: 'Alpha/report.html.md'
+      });
+
+      expect(settings.unlockedBundleMainPaths).toEqual(['Alpha/report.html']);
+    });
+
+    it('should leave the unlocked list alone for a bundle that was never unlocked', async () => {
+      settings.unlockedBundleMainPaths = ['Gamma/gamma.md'];
+      createComponent();
+
+      await fireRename({
+        declarations: [createDeclaration({ relativePaths: ['Alpha/assets/diagram.png'] })],
+        newPath: 'Beta/alpha.md',
+        oldPath: ALPHA_PATH
+      });
+
+      expect(settings.unlockedBundleMainPaths).toEqual(['Gamma/gamma.md']);
     });
   });
 

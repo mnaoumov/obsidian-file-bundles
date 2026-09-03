@@ -236,6 +236,14 @@ describe('parseBundleDeclaration', () => {
       }]);
     });
 
+    it('should read a link that climbs out of the declaring note folder as relative', () => {
+      const result = parse({ files: ['[[../Beta/diagram.png]]'] });
+
+      expect(result.declaration?.members[0]?.anchoring).toBe(BundleMemberAnchoring.Relative);
+      expect(result.declaration?.members[0]?.isAnchorPrefixMissing).toBe(false);
+      expect(result.declaration?.members[0]?.path).toBe('Beta/diagram.png');
+    });
+
     it('should accept a rooted path written where a link was expected', () => {
       const result = parse({ files: ['/Shared/logo.png'] });
 
@@ -300,6 +308,22 @@ describe('parseBundleDeclaration', () => {
         isWikilink: false,
         kind: BundleMemberKind.Folder,
         path: 'Alpha/assets'
+      }]);
+    });
+
+    /*
+     * `../` is explicitly relative too — and it is the form this plugin's own re-anchoring writes once a
+     * main file has moved away from a dependent, so refusing it would make the plugin reject its own output.
+     */
+    it('should accept a path that climbs out of the declaring note folder', () => {
+      const result = parse({ folders: ['../Beta/assets'] });
+
+      expect(result.declaration?.members).toEqual<BundleMember[]>([{
+        anchoring: BundleMemberAnchoring.Relative,
+        isAnchorPrefixMissing: false,
+        isWikilink: false,
+        kind: BundleMemberKind.Folder,
+        path: 'Beta/assets'
       }]);
     });
 
@@ -460,18 +484,18 @@ describe('formatBundleMemberEntry', () => {
   });
 
   /*
-   * A relative member that does not sit under the declaring note's folder cannot be shortened, so the path
-   * is carried whole. Reachable only from a hand-edited declaration, and rendering it unchanged is what
-   * keeps that round-trip lossless instead of silently pointing it somewhere else.
+   * A relative member that does not sit under the declaring note's folder has to climb out of it, and `../`
+   * is explicitly relative just as `./` is. This is the shape the plugin's own re-anchoring produces after a
+   * main file moves away from a dependent, so it has to round-trip.
    */
-  it('should carry a relative member from outside the declaring note folder whole', () => {
+  it('should climb out of the declaring note folder for a member that sits outside it', () => {
     expect(format({
       anchoring: BundleMemberAnchoring.Relative,
       isAnchorPrefixMissing: false,
       isWikilink: true,
       kind: BundleMemberKind.Folder,
       path: 'Beta/assets'
-    })).toBe('./Beta/assets');
+    })).toBe('../Beta/assets');
   });
 
   it('should render a relative folder member as a dot-prefixed path', () => {

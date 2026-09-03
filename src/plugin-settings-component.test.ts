@@ -14,6 +14,8 @@ import {
 import { PluginSettingsComponent } from './plugin-settings-component.ts';
 import { PluginSettings } from './plugin-settings.ts';
 
+type PathsValidator = (paths: string[]) => string | undefined;
+
 interface ProtectedBase {
   registerValidator(key: string, validator: unknown): void;
   registerValidators(): void;
@@ -72,6 +74,21 @@ describe('PluginSettingsComponent', () => {
     it('should accept a frontmatter key with content', () => {
       const validator = getRegisteredValidators().find((candidate) => candidate.key === 'frontmatterKey');
       expect(validator?.validator('file-bundles')).toBeUndefined();
+    });
+
+    /*
+     * The exclusion list takes the fleet's usual entry syntax — a plain path, or a regular expression in
+     * slashes — so it is the library's own validator that answers here rather than a second dialect.
+     */
+    it('should accept plain paths and well-formed regular expressions as exclusions', () => {
+      const validator = getRegisteredValidators().find((candidate) => candidate.key === 'excludedPathPatterns');
+      expect(validator).toBeDefined();
+      expect(castTo<PathsValidator>(validator?.validator)(['Archive', String.raw`/^Inbox\//`])).toBeUndefined();
+    });
+
+    it('should reject an exclusion that is a half-typed regular expression', () => {
+      const validator = getRegisteredValidators().find((candidate) => candidate.key === 'excludedPathPatterns');
+      expect(castTo<PathsValidator>(validator?.validator)([String.raw`/^Inbox\/`])).toBeTruthy();
     });
   });
 });

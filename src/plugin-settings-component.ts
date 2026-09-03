@@ -3,6 +3,7 @@ import type { PluginEventSource } from 'obsidian-dev-utils/obsidian/plugin/plugi
 import type { MaybeReturn } from 'obsidian-dev-utils/type';
 
 import { PluginSettingsComponentBase } from 'obsidian-dev-utils/obsidian/components/plugin-settings-component';
+import { pathsValidator } from 'obsidian-dev-utils/obsidian/path-settings';
 
 import { PluginSettings } from './plugin-settings.ts';
 
@@ -26,5 +27,7 @@ export class PluginSettingsComponent extends PluginSettingsComponentBase<PluginS
         return 'The frontmatter key cannot be empty';
       }
     });
+    // The same entry syntax the rest of the fleet uses: a plain path, or a regular expression in slashes.
+    this.registerValidator('excludedPathPatterns', (value): MaybeReturn<string> => pathsValidator([...value]));
   }
 }

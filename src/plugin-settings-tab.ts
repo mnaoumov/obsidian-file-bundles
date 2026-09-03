@@ -44,7 +44,7 @@ export class PluginSettingsTab extends PluginSettingsTabBase<PluginSettings> {
         }
       }),
       this.settingEx({
-        desc: 'Paths matching any of these are never treated as part of a bundle.',
+        desc: 'Paths matching any of these are never treated as part of a bundle, whether they declare one or are declared by one. Each entry is a plain path, matching it and everything under it, or a regular expression between slashes.',
         name: 'Excluded paths',
         render: (setting) => {
           setting.addMultipleText((multipleText) => {

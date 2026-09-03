@@ -12,23 +12,36 @@ import {
   vi
 } from 'vitest';
 
+import type { BundleDeclaration } from './bundle-declaration.ts';
+import type { BundleIndexComponent } from './bundle-index-component.ts';
+
+import {
+  BundleMemberAnchoring,
+  BundleMemberKind
+} from './bundle-declaration.ts';
+import { BundleIndex } from './bundle-index.ts';
 import { FileBundlesComponent } from './file-bundles-component.ts';
 
 describe('FileBundlesComponent', () => {
   let app: App;
   let commands: Command[];
+  let index: BundleIndex;
   let showNoticeMock: PluginNoticeComponent['showNotice'];
 
   beforeEach(() => {
     vi.clearAllMocks();
     app = App.createConfigured__();
     commands = [];
+    index = new BundleIndex();
     showNoticeMock = vi.fn<PluginNoticeComponent['showNotice']>();
   });
 
   function createComponent(): FileBundlesComponent {
     const component = new FileBundlesComponent({
       app: app.asOriginalType__(),
+      bundleIndexComponent: strictProxy<BundleIndexComponent>({
+        getIndex: () => index
+      }),
       commandRegistrar: strictProxy<CommandRegistrar>({
         addCommand: (command: Command) => {
           commands.push(command);
@@ -38,6 +51,14 @@ describe('FileBundlesComponent', () => {
     });
     component.load();
     return component;
+  }
+
+  function declare(overrides: Partial<BundleDeclaration> & Pick<BundleDeclaration, 'declaringPath'>): void {
+    index.setDeclaration({
+      mainPath: overrides.declaringPath,
+      members: [],
+      ...overrides
+    });
   }
 
   async function activate(path: string): Promise<void> {
@@ -63,7 +84,14 @@ describe('FileBundlesComponent', () => {
     expect(commands[0]?.name).toBe('Show the bundle the active file belongs to');
   });
 
-  it('should name the active file when invoked', async () => {
+  it('should say so when there is no active file', () => {
+    createComponent();
+
+    commands[0]?.callback?.();
+    expect(showNoticeMock).toHaveBeenCalledWith('File Bundles: no active file');
+  });
+
+  it('should say so when the active file belongs to no bundle', async () => {
     await activate('Alpha/alpha.jpg.md');
     createComponent();
 
@@ -71,11 +99,65 @@ describe('FileBundlesComponent', () => {
     expect(showNoticeMock).toHaveBeenCalledWith('File Bundles: no bundle declared for Alpha/alpha.jpg.md');
   });
 
-  it('should say so when there is no active file', () => {
+  it('should list what travels with a main file', async () => {
+    await activate('Alpha/alpha.md');
+    declare({
+      declaringPath: 'Alpha/alpha.md',
+      members: [{
+        anchoring: BundleMemberAnchoring.Relative,
+        isAnchorPrefixMissing: false,
+        kind: BundleMemberKind.File,
+        path: 'Alpha/assets/diagram.png'
+      }]
+    });
     createComponent();
 
     commands[0]?.callback?.();
-    expect(showNoticeMock).toHaveBeenCalledWith('File Bundles: no active file');
+    expect(showNoticeMock).toHaveBeenCalledWith('File Bundles: Alpha/alpha.md carries Alpha/assets/diagram.png');
+  });
+
+  it('should say a main file has no dependents rather than trailing off', async () => {
+    await activate('Alpha/alpha.md');
+    declare({ declaringPath: 'Alpha/alpha.md' });
+    createComponent();
+
+    commands[0]?.callback?.();
+    expect(showNoticeMock).toHaveBeenCalledWith('File Bundles: Alpha/alpha.md carries a bundle with no dependents');
+  });
+
+  it('should name the main file a dependent travels with', async () => {
+    await activate('Alpha/assets/diagram.png');
+    declare({
+      declaringPath: 'Alpha/alpha.md',
+      members: [{
+        anchoring: BundleMemberAnchoring.Relative,
+        isAnchorPrefixMissing: false,
+        kind: BundleMemberKind.File,
+        path: 'Alpha/assets/diagram.png'
+      }]
+    });
+    createComponent();
+
+    commands[0]?.callback?.();
+    expect(showNoticeMock).toHaveBeenCalledWith('File Bundles: Alpha/assets/diagram.png travels with Alpha/alpha.md');
+  });
+
+  it('should name every bundle a shared dependent travels with', async () => {
+    await activate('Shared/logo.png');
+    const member = {
+      anchoring: BundleMemberAnchoring.Rooted,
+      isAnchorPrefixMissing: false,
+      kind: BundleMemberKind.File,
+      path: 'Shared/logo.png'
+    };
+    declare({ declaringPath: 'Alpha/alpha.md', members: [member] });
+    declare({ declaringPath: 'Beta/beta.md', members: [member] });
+    createComponent();
+
+    commands[0]?.callback?.();
+    expect(showNoticeMock).toHaveBeenCalledWith(
+      'File Bundles: Shared/logo.png travels with Alpha/alpha.md, Beta/beta.md'
+    );
   });
 
   it('should not report anything until the command is invoked', () => {

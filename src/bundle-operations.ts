@@ -121,6 +121,31 @@ export interface RewriteBundleDeclarationParams {
 }
 
 /**
+ * Parameters for {@link toMovedDeclaration}.
+ */
+export interface ToMovedDeclarationParams {
+  /**
+   * The declaration as it stood before the moves.
+   */
+  readonly declaration: BundleDeclaration;
+
+  /**
+   * The moves that were made.
+   */
+  readonly moves: readonly BundleMemberMove[];
+
+  /**
+   * Where the file that started the operation is now.
+   */
+  readonly newPath: string;
+
+  /**
+   * Where the file that started the operation was.
+   */
+  readonly oldPath: string;
+}
+
+/**
  * Parameters for {@link trashBundlePaths}.
  */
 export interface TrashBundlePathsParams {
@@ -368,6 +393,49 @@ export async function rewriteBundleDeclaration(params: RewriteBundleDeclarationP
     return setFrontmatter(content, frontmatter);
   });
   await transaction.commit();
+}
+
+/**
+ * Answers what the declaration says once a planned set of moves has been made.
+ *
+ * Applied to the declaration this plugin holds, not to the note — the note is rewritten from the result, so
+ * that every entry names where its file actually ended up.
+ *
+ * @param params - The parameters.
+ * @returns The declaration with every path brought up to date.
+ */
+export function toMovedDeclaration(params: ToMovedDeclarationParams): BundleDeclaration {
+  const {
+    declaration,
+    moves,
+    newPath,
+    oldPath
+  } = params;
+
+  const newPathsByOldPath = new Map(moves.map((move) => [move.oldPath, move.newPath]));
+  newPathsByOldPath.set(oldPath, newPath);
+
+  function moved(path: string): string {
+    const directMove = newPathsByOldPath.get(path);
+    if (directMove !== undefined) {
+      return directMove;
+    }
+
+    for (const [movedOldPath, movedNewPath] of newPathsByOldPath) {
+      if (isUnder(movedOldPath, path)) {
+        return rebase(path, movedOldPath, movedNewPath);
+      }
+    }
+
+    return path;
+  }
+
+  return {
+    ...declaration,
+    declaringPath: moved(declaration.declaringPath),
+    mainPath: moved(declaration.mainPath),
+    members: declaration.members.map((member) => ({ ...member, path: moved(member.path) }))
+  };
 }
 
 /**

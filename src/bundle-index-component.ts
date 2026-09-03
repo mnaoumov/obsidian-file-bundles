@@ -15,6 +15,26 @@ import { parseBundleDeclaration } from './bundle-declaration.ts';
 import { BundleIndex } from './bundle-index.ts';
 
 /**
+ * A bundle's own file is about to be forgotten, reported while its declaration is still knowable.
+ */
+export interface BundleDeleteEvent {
+  /**
+   * The bundles whose main file or declaring note was deleted.
+   */
+  readonly declarations: readonly BundleDeclaration[];
+
+  /**
+   * Every other bundle in the vault, so a caller can tell which dependents are shared.
+   */
+  readonly otherDeclarations: readonly BundleDeclaration[];
+
+  /**
+   * The deleted path.
+   */
+  readonly path: string;
+}
+
+/**
  * Parameters for the {@link BundleIndexComponent} constructor.
  */
 export interface BundleIndexComponentConstructorParams {
@@ -30,6 +50,27 @@ export interface BundleIndexComponentConstructorParams {
 }
 
 /**
+ * A bundle's own file has been renamed or moved, reported while its members still hold the paths they have
+ * on disk.
+ */
+export interface BundleRenameEvent {
+  /**
+   * The bundles whose main file or declaring note moved.
+   */
+  readonly declarations: readonly BundleDeclaration[];
+
+  /**
+   * Where that file is now.
+   */
+  readonly newPath: string;
+
+  /**
+   * Where that file was.
+   */
+  readonly oldPath: string;
+}
+
+/**
  * Keeps a {@link BundleIndex} current: a full read at layout-ready, then incremental updates off the
  * metadata cache and the vault's own events.
  *
@@ -41,9 +82,11 @@ export interface BundleIndexComponentConstructorParams {
  */
 export class BundleIndexComponent extends LayoutReadyComponent {
   private readonly changeHandlers = new Set<() => void>();
+  private readonly deletionHandlers = new Set<(event: BundleDeleteEvent) => void>();
   private readonly index: BundleIndex;
   private readonly pathSettings = new PathSettings();
   private readonly pluginSettingsComponent: PluginSettingsComponent;
+  private readonly renameHandlers = new Set<(event: BundleRenameEvent) => void>();
 
   /**
    * Creates the component.
@@ -116,6 +159,39 @@ export class BundleIndexComponent extends LayoutReadyComponent {
   }
 
   /**
+   * Registers a handler invoked when a bundle's own file is about to be forgotten, BEFORE the index drops
+   * it.
+   *
+   * The moment matters: `vault.on('delete')` fires after the fact, so by the time anything else could look,
+   * the declaring note is gone and nothing can say what went with it. This hands the caller the
+   * declaration as it stood.
+   *
+   * @param handler - The handler.
+   */
+  public registerDeleteHandler(handler: (event: BundleDeleteEvent) => void): void {
+    this.deletionHandlers.add(handler);
+    this.register(() => {
+      this.deletionHandlers.delete(handler);
+    });
+  }
+
+  /**
+   * Registers a handler invoked when a bundle's own file has been renamed or moved, BEFORE the index
+   * re-paths it.
+   *
+   * The declarations it receives still hold the paths the members have on disk right now, which is what an
+   * operation has to plan against.
+   *
+   * @param handler - The handler.
+   */
+  public registerRenameHandler(handler: (event: BundleRenameEvent) => void): void {
+    this.renameHandlers.add(handler);
+    this.register(() => {
+      this.renameHandlers.delete(handler);
+    });
+  }
+
+  /**
    * Reads every declaration in the vault once the layout is ready.
    */
   protected override onLayoutReady(): void {
@@ -123,6 +199,7 @@ export class BundleIndexComponent extends LayoutReadyComponent {
   }
 
   private forgetPath(file: TAbstractFile): void {
+    this.notifyDeleting(file.path);
     this.index.removeDeclaration(file.path);
 
     /*
@@ -148,6 +225,8 @@ export class BundleIndexComponent extends LayoutReadyComponent {
    * or from the user editing the note — supersedes it with whatever the note then really says.
    */
   private handleRename(file: TAbstractFile, oldPath: string): void {
+    this.notifyRenaming(oldPath, file.path);
+
     const renamedDeclarations: BundleDeclaration[] = [];
 
     for (const declaration of this.index.getDeclarations()) {
@@ -167,6 +246,41 @@ export class BundleIndexComponent extends LayoutReadyComponent {
   private notifyChanged(): void {
     for (const handler of this.changeHandlers) {
       handler();
+    }
+  }
+
+  private notifyDeleting(path: string): void {
+    if (this.deletionHandlers.size === 0) {
+      return;
+    }
+
+    const declarations = this.index.getDeclarations()
+      .filter((declaration) => declaration.declaringPath === path || declaration.mainPath === path);
+    if (declarations.length === 0) {
+      return;
+    }
+
+    const otherDeclarations = this.index.getDeclarations()
+      .filter((declaration) => !declarations.includes(declaration));
+
+    for (const handler of this.deletionHandlers) {
+      handler({ declarations, otherDeclarations, path });
+    }
+  }
+
+  private notifyRenaming(oldPath: string, newPath: string): void {
+    if (this.renameHandlers.size === 0) {
+      return;
+    }
+
+    const declarations = this.index.getDeclarations()
+      .filter((declaration) => declaration.declaringPath === oldPath || declaration.mainPath === oldPath);
+    if (declarations.length === 0) {
+      return;
+    }
+
+    for (const handler of this.renameHandlers) {
+      handler({ declarations, newPath, oldPath });
     }
   }
 

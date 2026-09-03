@@ -19,6 +19,7 @@ import {
   planBundleMove,
   planBundleRename,
   rewriteBundleDeclaration,
+  toMovedDeclaration,
   trashBundlePaths
 } from './bundle-operations.ts';
 
@@ -346,6 +347,55 @@ describe('planBundleDeletion', () => {
     });
 
     expect(paths).toEqual(['Alpha/assets']);
+  });
+});
+
+describe('toMovedDeclaration', () => {
+  it('should bring the moved file and its members up to date', () => {
+    const declaration = toMovedDeclaration({
+      declaration: createDeclaration({ relativePaths: ['Alpha/assets/diagram.png'], rootedPaths: ['Shared/logo.png'] }),
+      moves: [{ newPath: 'Beta/assets/diagram.png', oldPath: 'Alpha/assets/diagram.png' }],
+      newPath: 'Beta/alpha.md',
+      oldPath: ALPHA_PATH
+    });
+
+    expect(declaration.declaringPath).toBe('Beta/alpha.md');
+    expect(declaration.mainPath).toBe('Beta/alpha.md');
+    expect(declaration.members.map((member) => member.path)).toEqual(['Beta/assets/diagram.png', 'Shared/logo.png']);
+  });
+
+  /*
+   * Only the outermost move is planned for a folder, so the members inside it have to be carried by that
+   * folder's move rather than by an entry of their own.
+   */
+  it('should carry a member inside a moved folder', () => {
+    const declaration = toMovedDeclaration({
+      declaration: createDeclaration({
+        folderPaths: ['Alpha/assets'],
+        relativePaths: ['Alpha/assets/nested/deep.png']
+      }),
+      moves: [{ newPath: 'Beta/assets', oldPath: 'Alpha/assets' }],
+      newPath: 'Beta/alpha.md',
+      oldPath: ALPHA_PATH
+    });
+
+    expect(declaration.members.map((member) => member.path))
+      .toEqual(['Beta/assets/nested/deep.png', 'Beta/assets']);
+  });
+
+  it('should bring the sidecar note up to date alongside its main file', () => {
+    const declaration = toMovedDeclaration({
+      declaration: createDeclaration({
+        declaringPath: 'Alpha/report.html.md',
+        mainPath: 'Alpha/report.html'
+      }),
+      moves: [{ newPath: 'Beta/report.html.md', oldPath: 'Alpha/report.html.md' }],
+      newPath: 'Beta/report.html',
+      oldPath: 'Alpha/report.html'
+    });
+
+    expect(declaration.declaringPath).toBe('Beta/report.html.md');
+    expect(declaration.mainPath).toBe('Beta/report.html');
   });
 });
 

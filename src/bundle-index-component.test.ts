@@ -13,6 +13,10 @@ import {
   vi
 } from 'vitest';
 
+import type {
+  BundleDeleteEvent,
+  BundleRenameEvent
+} from './bundle-index-component.ts';
 import type { PluginSettingsComponent } from './plugin-settings-component.ts';
 
 import { BundleIndexComponent } from './bundle-index-component.ts';
@@ -296,6 +300,97 @@ describe('BundleIndexComponent', () => {
       app.vault.trigger('delete', app.vault.getRoot());
 
       expect(handler).not.toHaveBeenCalled();
+    });
+  });
+
+  /*
+   * These are reported BEFORE the index updates, which is the whole point: `vault.on('delete')` fires after
+   * the fact, so nothing downstream could otherwise say what went with the file that just went.
+   */
+  describe('reporting a change before making it', () => {
+    it('should hand the rename handler the declaration with the paths the members still have', async () => {
+      app.vault.createFolderSync__('Alpha/assets');
+      createNote(ALPHA_PATH, ALPHA_CONTENT);
+      const component = await createComponent();
+      const events: BundleRenameEvent[] = [];
+      component.registerRenameHandler((event) => {
+        events.push(event);
+      });
+
+      app.vault.createFolderSync__('Moved');
+      await app.vault.rename(ensureFile(ALPHA_PATH), 'Moved/alpha.md');
+
+      expect(events).toHaveLength(1);
+      expect(events[0]?.oldPath).toBe(ALPHA_PATH);
+      expect(events[0]?.newPath).toBe('Moved/alpha.md');
+      expect(events[0]?.declarations[0]?.members.map((member) => member.path))
+        .toEqual(['Alpha/assets/diagram.png', 'Alpha/assets']);
+    });
+
+    it('should say nothing about a rename that touches no bundle of its own', async () => {
+      createNote(ALPHA_PATH, ALPHA_CONTENT);
+      createNote('Beta/beta.md', PLAIN_CONTENT);
+      const component = await createComponent();
+      const events: BundleRenameEvent[] = [];
+      component.registerRenameHandler((event) => {
+        events.push(event);
+      });
+
+      await app.vault.rename(ensureFile('Beta/beta.md'), 'Beta/renamed.md');
+
+      expect(events).toEqual([]);
+    });
+
+    it('should hand the delete handler the declaration and everything else that claims files', async () => {
+      createNote(ALPHA_PATH, ALPHA_CONTENT);
+      createNote('Beta/beta.md', ALPHA_CONTENT);
+      const component = await createComponent();
+      const events: BundleDeleteEvent[] = [];
+      component.registerDeleteHandler((event) => {
+        events.push(event);
+      });
+
+      app.vault.trigger('delete', ensureFile(ALPHA_PATH));
+
+      expect(events).toHaveLength(1);
+      expect(events[0]?.path).toBe(ALPHA_PATH);
+      expect(events[0]?.declarations.map((declaration) => declaration.declaringPath)).toEqual([ALPHA_PATH]);
+      expect(events[0]?.otherDeclarations.map((declaration) => declaration.declaringPath)).toEqual(['Beta/beta.md']);
+    });
+
+    it('should say nothing about a deletion that touches no bundle of its own', async () => {
+      createNote(ALPHA_PATH, ALPHA_CONTENT);
+      createNote('Beta/beta.md', PLAIN_CONTENT);
+      const component = await createComponent();
+      const events: BundleDeleteEvent[] = [];
+      component.registerDeleteHandler((event) => {
+        events.push(event);
+      });
+
+      app.vault.trigger('delete', ensureFile('Beta/beta.md'));
+
+      expect(events).toEqual([]);
+    });
+
+    it('should stop reporting once the component unloads', async () => {
+      createNote(ALPHA_PATH, ALPHA_CONTENT);
+      const component = await createComponent();
+      const deleteEvents: BundleDeleteEvent[] = [];
+      const renameEvents: BundleRenameEvent[] = [];
+      component.registerDeleteHandler((event) => {
+        deleteEvents.push(event);
+      });
+      component.registerRenameHandler((event) => {
+        renameEvents.push(event);
+      });
+      component.unload();
+
+      app.vault.createFolderSync__('Moved');
+      await app.vault.rename(ensureFile(ALPHA_PATH), 'Moved/alpha.md');
+      app.vault.trigger('delete', ensureFile('Moved/alpha.md'));
+
+      expect(deleteEvents).toEqual([]);
+      expect(renameEvents).toEqual([]);
     });
   });
 

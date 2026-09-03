@@ -162,6 +162,15 @@ export interface BundleMember {
   readonly isAnchorPrefixMissing: boolean;
 
   /**
+   * Whether the entry was written as a wikilink rather than a markdown link.
+   *
+   * Recorded because the writer has to put back what the user wrote: a declaration this plugin re-anchors
+   * would otherwise silently convert every entry to one syntax. Meaningless for a folder member written as
+   * a path, which has no link syntax at all.
+   */
+  readonly isWikilink: boolean;
+
+  /**
    * Whether the entry named a file or a folder. A folder member covers its whole subtree.
    */
   readonly kind: BundleMemberKind;
@@ -187,13 +196,7 @@ export interface FormatBundleMemberEntryParams {
   readonly declaringPath: string;
 
   /**
-   * Whether to render a file member as a wikilink rather than a markdown link, preserving the syntax the
-   * declaration already used.
-   */
-  readonly isWikilink: boolean;
-
-  /**
-   * The member to render.
+   * The member to render, whose own recorded syntax and anchoring the entry preserves.
    */
   readonly member: BundleMember;
 }
@@ -257,6 +260,7 @@ interface CollectMembersParams {
 interface ResolvedEntry {
   readonly anchoring: BundleMemberAnchoring;
   readonly isAnchorPrefixMissing: boolean;
+  readonly isWikilink: boolean;
   readonly path: string;
 }
 
@@ -289,7 +293,6 @@ export function formatBundleMemberEntry(params: FormatBundleMemberEntryParams): 
   const {
     app,
     declaringPath,
-    isWikilink,
     member
   } = params;
 
@@ -306,7 +309,7 @@ export function formatBundleMemberEntry(params: FormatBundleMemberEntryParams): 
     linkPathStyle: member.anchoring === BundleMemberAnchoring.Relative
       ? LinkPathStyle.RelativePathToTheSource
       : LinkPathStyle.AbsolutePathInVault,
-    linkStyle: isWikilink ? LinkStyle.Wikilink : LinkStyle.Markdown,
+    linkStyle: member.isWikilink ? LinkStyle.Wikilink : LinkStyle.Markdown,
     shouldUseLeadingDotForRelativePaths: true,
     shouldUseLeadingSlashForAbsolutePaths: true,
     sourcePathOrFile: declaringPath,
@@ -423,6 +426,7 @@ function collectFileMembers(params: CollectMembersParams): void {
     members.push({
       anchoring: resolved.anchoring,
       isAnchorPrefixMissing: resolved.isAnchorPrefixMissing,
+      isWikilink: resolved.isWikilink,
       kind: BundleMemberKind.File,
       path: resolved.path
     });
@@ -466,6 +470,7 @@ function collectFolderMembers(params: CollectMembersParams): void {
     members.push({
       anchoring: resolved.anchoring,
       isAnchorPrefixMissing: resolved.isAnchorPrefixMissing,
+      isWikilink: resolved.isWikilink,
       kind: BundleMemberKind.Folder,
       path: resolved.path
     });
@@ -521,6 +526,7 @@ function resolveFolderNoteEntry(params: ResolveEntryParams): null | ResolvedEntr
   return {
     anchoring: resolved.anchoring,
     isAnchorPrefixMissing: resolved.isAnchorPrefixMissing,
+    isWikilink: resolved.isWikilink,
     path: folder.path
   };
 }
@@ -583,6 +589,8 @@ function resolveLinkEntry(params: ResolveEntryParams): null | ResolvedEntry {
   const isRelative = parseLinkResult ? hasLeadingDot(entry) : linkPath.startsWith(RELATIVE_PREFIX);
   const isRooted = parseLinkResult ? hasLeadingSlash(entry) : linkPath.startsWith(ROOTED_PREFIX);
 
+  // A bare path carries no syntax, so it is written back as a wikilink — the form Obsidian's cache indexes.
+  const isWikilink = parseLinkResult?.isWikilink ?? true;
   const resolvedFile = app.metadataCache.getFirstLinkpathDest(linkPath, declaringPath);
   const path = resolvedFile?.path ?? resolvePathAgainst(declaringPath, linkPath);
 
@@ -595,6 +603,7 @@ function resolveLinkEntry(params: ResolveEntryParams): null | ResolvedEntry {
     return {
       anchoring: inferAnchoring(declaringPath, path),
       isAnchorPrefixMissing: true,
+      isWikilink,
       path
     };
   }
@@ -602,6 +611,7 @@ function resolveLinkEntry(params: ResolveEntryParams): null | ResolvedEntry {
   return {
     anchoring: isRelative ? BundleMemberAnchoring.Relative : BundleMemberAnchoring.Rooted,
     isAnchorPrefixMissing: false,
+    isWikilink,
     path
   };
 }
@@ -664,6 +674,7 @@ function resolvePathEntry(params: ResolveEntryParams): null | ResolvedEntry {
     return {
       anchoring: BundleMemberAnchoring.Relative,
       isAnchorPrefixMissing: false,
+      isWikilink: false,
       path: resolvePathAgainst(declaringPath, entry)
     };
   }
@@ -672,6 +683,7 @@ function resolvePathEntry(params: ResolveEntryParams): null | ResolvedEntry {
     return {
       anchoring: BundleMemberAnchoring.Rooted,
       isAnchorPrefixMissing: false,
+      isWikilink: false,
       path: normalizePath(entry.slice(ROOTED_PREFIX.length))
     };
   }

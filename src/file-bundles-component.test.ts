@@ -106,6 +106,7 @@ describe('FileBundlesComponent', () => {
       members: [{
         anchoring: BundleMemberAnchoring.Relative,
         isAnchorPrefixMissing: false,
+        isWikilink: true,
         kind: BundleMemberKind.File,
         path: 'Alpha/assets/diagram.png'
       }]
@@ -132,6 +133,7 @@ describe('FileBundlesComponent', () => {
       members: [{
         anchoring: BundleMemberAnchoring.Relative,
         isAnchorPrefixMissing: false,
+        isWikilink: true,
         kind: BundleMemberKind.File,
         path: 'Alpha/assets/diagram.png'
       }]
@@ -147,6 +149,7 @@ describe('FileBundlesComponent', () => {
     const member = {
       anchoring: BundleMemberAnchoring.Rooted,
       isAnchorPrefixMissing: false,
+      isWikilink: true,
       kind: BundleMemberKind.File,
       path: 'Shared/logo.png'
     };

@@ -138,6 +138,7 @@ describe('parseBundleDeclaration', () => {
       expect(result.declaration?.members).toEqual<BundleMember[]>([{
         anchoring: BundleMemberAnchoring.Relative,
         isAnchorPrefixMissing: false,
+        isWikilink: true,
         kind: BundleMemberKind.File,
         path: 'Alpha/assets/diagram.png'
       }]);
@@ -149,17 +150,19 @@ describe('parseBundleDeclaration', () => {
       expect(result.declaration?.members).toEqual<BundleMember[]>([{
         anchoring: BundleMemberAnchoring.Rooted,
         isAnchorPrefixMissing: false,
+        isWikilink: true,
         kind: BundleMemberKind.File,
         path: 'Shared/logo.png'
       }]);
     });
 
-    it('should accept the markdown link form as readily as the wikilink form', () => {
+    it('should accept the markdown link form as readily as the wikilink form, and remember which it was', () => {
       const result = parse({ files: ['[./notes.pdf](./notes.pdf)'] });
 
       expect(result.declaration?.members).toEqual<BundleMember[]>([{
         anchoring: BundleMemberAnchoring.Relative,
         isAnchorPrefixMissing: false,
+        isWikilink: false,
         kind: BundleMemberKind.File,
         path: 'Alpha/notes.pdf'
       }]);
@@ -227,6 +230,7 @@ describe('parseBundleDeclaration', () => {
       expect(result.declaration?.members).toEqual<BundleMember[]>([{
         anchoring: BundleMemberAnchoring.Relative,
         isAnchorPrefixMissing: false,
+        isWikilink: true,
         kind: BundleMemberKind.File,
         path: 'Alpha/assets/diagram.png'
       }]);
@@ -256,6 +260,7 @@ describe('parseBundleDeclaration', () => {
       expect(result.declaration?.members).toEqual<BundleMember[]>([{
         anchoring: BundleMemberAnchoring.Relative,
         isAnchorPrefixMissing: true,
+        isWikilink: true,
         kind: BundleMemberKind.File,
         path: 'Alpha/assets/diagram.png'
       }]);
@@ -292,6 +297,7 @@ describe('parseBundleDeclaration', () => {
       expect(result.declaration?.members).toEqual<BundleMember[]>([{
         anchoring: BundleMemberAnchoring.Relative,
         isAnchorPrefixMissing: false,
+        isWikilink: false,
         kind: BundleMemberKind.Folder,
         path: 'Alpha/assets'
       }]);
@@ -303,6 +309,7 @@ describe('parseBundleDeclaration', () => {
       expect(result.declaration?.members).toEqual<BundleMember[]>([{
         anchoring: BundleMemberAnchoring.Rooted,
         isAnchorPrefixMissing: false,
+        isWikilink: false,
         kind: BundleMemberKind.Folder,
         path: 'Shared/brand'
       }]);
@@ -334,6 +341,7 @@ describe('parseBundleDeclaration', () => {
       expect(result.declaration?.members).toEqual<BundleMember[]>([{
         anchoring: BundleMemberAnchoring.Relative,
         isAnchorPrefixMissing: false,
+        isWikilink: true,
         kind: BundleMemberKind.Folder,
         path: 'Alpha/assets/alpha'
       }]);
@@ -430,11 +438,10 @@ describe('formatBundleMemberEntry', () => {
     app.vault.createSync__('Shared/logo.png', '');
   });
 
-  function format(member: BundleMember, isWikilink = true, declaringPath = DECLARING_PATH): string {
+  function format(member: BundleMember, declaringPath = DECLARING_PATH): string {
     return formatBundleMemberEntry({
       app: app.asOriginalType__(),
       declaringPath,
-      isWikilink,
       member
     });
   }
@@ -444,10 +451,10 @@ describe('formatBundleMemberEntry', () => {
       {
         anchoring: BundleMemberAnchoring.Relative,
         isAnchorPrefixMissing: false,
+        isWikilink: true,
         kind: BundleMemberKind.Folder,
         path: 'assets'
       },
-      true,
       'main.md'
     )).toBe('./assets');
   });
@@ -461,6 +468,7 @@ describe('formatBundleMemberEntry', () => {
     expect(format({
       anchoring: BundleMemberAnchoring.Relative,
       isAnchorPrefixMissing: false,
+      isWikilink: true,
       kind: BundleMemberKind.Folder,
       path: 'Beta/assets'
     })).toBe('./Beta/assets');
@@ -470,6 +478,7 @@ describe('formatBundleMemberEntry', () => {
     expect(format({
       anchoring: BundleMemberAnchoring.Relative,
       isAnchorPrefixMissing: false,
+      isWikilink: true,
       kind: BundleMemberKind.Folder,
       path: 'Alpha/assets'
     })).toBe('./assets');
@@ -479,6 +488,7 @@ describe('formatBundleMemberEntry', () => {
     expect(format({
       anchoring: BundleMemberAnchoring.Rooted,
       isAnchorPrefixMissing: false,
+      isWikilink: true,
       kind: BundleMemberKind.Folder,
       path: 'Shared/brand'
     })).toBe('/Shared/brand');
@@ -488,6 +498,7 @@ describe('formatBundleMemberEntry', () => {
     expect(format({
       anchoring: BundleMemberAnchoring.Relative,
       isAnchorPrefixMissing: false,
+      isWikilink: true,
       kind: BundleMemberKind.File,
       path: 'Alpha/assets/diagram.png'
     })).toContain('./assets/diagram.png');
@@ -497,6 +508,7 @@ describe('formatBundleMemberEntry', () => {
     expect(format({
       anchoring: BundleMemberAnchoring.Rooted,
       isAnchorPrefixMissing: false,
+      isWikilink: true,
       kind: BundleMemberKind.File,
       path: 'Shared/logo.png'
     })).toContain('/Shared/logo.png');
@@ -506,9 +518,10 @@ describe('formatBundleMemberEntry', () => {
     const entry = format({
       anchoring: BundleMemberAnchoring.Relative,
       isAnchorPrefixMissing: false,
+      isWikilink: false,
       kind: BundleMemberKind.File,
       path: 'Alpha/assets/diagram.png'
-    }, false);
+    });
 
     expect(entry.startsWith('[')).toBe(true);
     expect(entry).toContain('](./assets/diagram.png)');

@@ -32,12 +32,14 @@ function createDeclaration(overrides: DeclarationOverrides = {}): BundleDeclarat
       ...(overrides.memberPaths ?? []).map((path) => ({
         anchoring: BundleMemberAnchoring.Relative,
         isAnchorPrefixMissing: false,
+        isWikilink: true,
         kind: BundleMemberKind.File,
         path
       })),
       ...(overrides.folderPaths ?? []).map((path) => ({
         anchoring: BundleMemberAnchoring.Relative,
         isAnchorPrefixMissing: false,
+        isWikilink: true,
         kind: BundleMemberKind.Folder,
         path
       }))

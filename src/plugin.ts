@@ -1,5 +1,6 @@
 import { OpenDemoVaultCommandHandler } from 'obsidian-dev-utils/obsidian/command-handlers/open-demo-vault-command-handler';
 import { PluginCommandRegistrar } from 'obsidian-dev-utils/obsidian/command-registrar';
+import { MenuEventRegistrarComponent } from 'obsidian-dev-utils/obsidian/components/menu-event-registrar-component';
 import { PluginSettingsTabComponent } from 'obsidian-dev-utils/obsidian/components/plugin-settings-tab-component';
 import { PluginDataHandler } from 'obsidian-dev-utils/obsidian/data-handler';
 import { PluginBase } from 'obsidian-dev-utils/obsidian/plugin/plugin';
@@ -59,7 +60,9 @@ export class Plugin extends PluginBase {
         app: this.app,
         bundleIndexComponent,
         commandRegistrar: new PluginCommandRegistrar(this),
-        pluginNoticeComponent: this.pluginNoticeComponent
+        menuEventRegistrar: this.addChild(new MenuEventRegistrarComponent(this.app)),
+        pluginNoticeComponent: this.pluginNoticeComponent,
+        pluginSettingsComponent
       })
     );
 

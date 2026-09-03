@@ -13,7 +13,7 @@ An HTML page and the assets it loads, a note and the images pasted into it, a sc
 A copy of the vault ships with every release. You can access it via any of the following:
 
 1. Running the **File Bundles: Open demo vault** command.
-2. Downloading `file-bundles-demo-vault-<version>.zip` (`<version>` is the release version) from the [Releases](https://github.com/mnaoumov/obsidian-file-bundles/releases).
+2. Downloading `file-bundles-demo-vault.zip` from the [Releases](https://github.com/mnaoumov/obsidian-file-bundles/releases). It unzips into a single `file-bundles-demo-vault-<version>` folder.
 3. Browsing its source in [`demo-vault/`](./demo-vault/README.md) in this repository.
 
 ## What makes it different

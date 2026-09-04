@@ -1,4 +1,3 @@
-import { castTo } from 'obsidian-dev-utils/object-utils';
 import { App } from 'obsidian-test-mocks/obsidian';
 import {
   beforeEach,
@@ -25,14 +24,6 @@ import {
  * `folder-notes` plugin for its configuration, so the strict mock has to answer — returning `null` is what
  * makes it fall back to the built-in convention (a note named after its folder, inside it).
  */
-interface AppWithPlugins {
-  plugins: PluginRegistryLike;
-}
-
-interface PluginRegistryLike {
-  getPlugin(this: void, id: string): unknown;
-}
-
 const DECLARING_PATH = 'Alpha/main.md';
 const FRONTMATTER_KEY = 'file-bundles';
 
@@ -41,7 +32,6 @@ describe('parseBundleDeclaration', () => {
 
   beforeEach(() => {
     app = App.createConfigured__();
-    castTo<AppWithPlugins>(app).plugins = { getPlugin: (): null => null };
   });
 
   function parse(declaration: unknown, declaringPath = DECLARING_PATH): ReturnType<typeof parseBundleDeclaration> {
@@ -453,7 +443,6 @@ describe('formatBundleMemberEntry', () => {
 
   beforeEach(() => {
     app = App.createConfigured__();
-    castTo<AppWithPlugins>(app).plugins = { getPlugin: (): null => null };
     // A link is generated for a member that exists; the library only reaches for the vault's raw file map
     // When asked to name a file that does not.
     app.vault.createFolderSync__('Alpha/assets');

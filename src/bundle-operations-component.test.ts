@@ -1,6 +1,5 @@
 import { sleep } from 'obsidian-dev-utils/async';
 import { noopAsync } from 'obsidian-dev-utils/function';
-import { castTo } from 'obsidian-dev-utils/object-utils';
 import { strictProxy } from 'obsidian-dev-utils/strict-proxy';
 import { App } from 'obsidian-test-mocks/obsidian';
 import {
@@ -26,19 +25,11 @@ import {
 import { BundleOperationsComponent } from './bundle-operations-component.ts';
 import { PluginSettings } from './plugin-settings.ts';
 
-interface AppWithPlugins {
-  plugins: PluginRegistryLike;
-}
-
 interface DeclarationOverrides {
   readonly declaringPath?: string;
   readonly mainPath?: string;
   readonly relativePaths?: readonly string[];
   readonly rootedPaths?: readonly string[];
-}
-
-interface PluginRegistryLike {
-  getPlugin(this: void, id: string): unknown;
 }
 
 const ALPHA_PATH = 'Alpha/alpha.md';
@@ -78,7 +69,6 @@ describe('BundleOperationsComponent', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     app = App.createConfigured__();
-    castTo<AppWithPlugins>(app).plugins = { getPlugin: (): null => null };
     deleteHandlers = [];
     renameHandlers = [];
     settings = new PluginSettings();

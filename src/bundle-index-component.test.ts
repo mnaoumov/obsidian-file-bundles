@@ -25,14 +25,6 @@ import { PluginSettings } from './plugin-settings.ts';
 /**
  * The subset of `App` the folder-note resolution reads; see the declaration tests for why it has to answer.
  */
-interface AppWithPlugins {
-  plugins: PluginRegistryLike;
-}
-
-interface PluginRegistryLike {
-  getPlugin(this: void, id: string): unknown;
-}
-
 const ALPHA_CONTENT = [
   '---',
   'file-bundles:',
@@ -59,7 +51,6 @@ describe('BundleIndexComponent', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     app = App.createConfigured__();
-    castTo<AppWithPlugins>(app).plugins = { getPlugin: (): null => null };
     appOriginal = app.asOriginalType__();
     // Fire layout-ready synchronously, so the component's initial read happens within the test.
     appOriginal.workspace.onLayoutReady = vi.fn((callback: () => void) => {

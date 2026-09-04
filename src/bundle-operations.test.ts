@@ -1,4 +1,3 @@
-import { castTo } from 'obsidian-dev-utils/object-utils';
 import { App } from 'obsidian-test-mocks/obsidian';
 import {
   beforeEach,
@@ -23,10 +22,6 @@ import {
   trashBundlePaths
 } from './bundle-operations.ts';
 
-interface AppWithPlugins {
-  plugins: PluginRegistryLike;
-}
-
 interface DeclarationOverrides {
   readonly declaringPath?: string;
   readonly folderPaths?: readonly string[];
@@ -34,10 +29,6 @@ interface DeclarationOverrides {
   readonly relativePaths?: readonly string[];
   readonly renameDependents?: boolean;
   readonly rootedPaths?: readonly string[];
-}
-
-interface PluginRegistryLike {
-  getPlugin(this: void, id: string): unknown;
 }
 
 const ALPHA_PATH = 'Alpha/alpha.md';
@@ -404,7 +395,6 @@ describe('the vault operations', () => {
 
   beforeEach(() => {
     app = App.createConfigured__();
-    castTo<AppWithPlugins>(app).plugins = { getPlugin: (): null => null };
   });
 
   function readFile(path: string): string {

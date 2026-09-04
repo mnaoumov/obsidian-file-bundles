@@ -4,6 +4,28 @@
 
 An HTML page and the assets it loads, a note and the images pasted into it, a scanned invoice and the note describing it — these are one thing to you and several files to Obsidian. Move the main file and the rest stay behind. Delete it and they are orphaned. This plugin lets a file declare which files and folders belong with it, and then treats them as one **bundle**: what happens to the main file happens to the whole thing.
 
+<!-- markdownlint-disable MD033 -->
+
+<a href="https://github.com/mnaoumov/obsidian-file-bundles/blob/HEAD/images/screenshots/screenshot-desktop-1.png"><img src="images/screenshots/screenshot-desktop-1.png" alt="8 files on disk, 4 rows in the explorer" width="600"></a>
+
+<details>
+<summary>More screenshots</summary>
+
+<div>
+<a href="https://github.com/mnaoumov/obsidian-file-bundles/blob/HEAD/images/screenshots/screenshot-desktop-2.png"><img src="images/screenshots/screenshot-desktop-2.png" alt="Unlock one bundle and its dependents come back, dimmed" width="600"></a>
+<a href="https://github.com/mnaoumov/obsidian-file-bundles/blob/HEAD/images/screenshots/screenshot-desktop-3.png"><img src="images/screenshots/screenshot-desktop-3.png" alt="A file declares what belongs with it, in its own frontmatter" width="600"></a>
+<a href="https://github.com/mnaoumov/obsidian-file-bundles/blob/HEAD/images/screenshots/screenshot-desktop-4.png"><img src="images/screenshots/screenshot-desktop-4.png" alt="A sidecar bundles a file that cannot carry frontmatter" width="600"></a>
+<a href="https://github.com/mnaoumov/obsidian-file-bundles/blob/HEAD/images/screenshots/screenshot-desktop-5.png"><img src="images/screenshots/screenshot-desktop-5.png" alt="Move the main file and the whole bundle moves with it" width="600"></a>
+<a href="https://github.com/mnaoumov/obsidian-file-bundles/blob/HEAD/images/screenshots/screenshot-mobile-1.png"><img src="images/screenshots/screenshot-mobile-1.png" alt="A locked bundle hides the files it declares" width="270"></a>
+<a href="https://github.com/mnaoumov/obsidian-file-bundles/blob/HEAD/images/screenshots/screenshot-mobile-2.png"><img src="images/screenshots/screenshot-mobile-2.png" alt="Unlock one bundle and its dependents come back, dimmed" width="270"></a>
+<a href="https://github.com/mnaoumov/obsidian-file-bundles/blob/HEAD/images/screenshots/screenshot-mobile-3.png"><img src="images/screenshots/screenshot-mobile-3.png" alt="Move the main file and the whole bundle moves with it" width="270"></a>
+<a href="https://github.com/mnaoumov/obsidian-file-bundles/blob/HEAD/images/screenshots/screenshot-mobile-4.png"><img src="images/screenshots/screenshot-mobile-4.png" alt="A file declares what belongs with it, in its own frontmatter" width="270"></a>
+</div>
+
+</details>
+
+<!-- markdownlint-enable MD033 -->
+
 ## Demo vault
 
 **The documentation is a demo vault.** Every feature has a note that explains what it does, with a worked example you can search yourself.

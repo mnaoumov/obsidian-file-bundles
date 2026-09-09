@@ -16,7 +16,7 @@ A copy of the vault ships with every release. You can access it via any of the f
 2. Downloading `file-bundles-demo-vault.zip` from the [Releases](https://github.com/mnaoumov/obsidian-file-bundles/releases). It unzips into a single `file-bundles-demo-vault-<version>` folder.
 3. Browsing its source in [`demo-vault/`](./demo-vault/README.md) in this repository.
 
-## What makes it different
+## What it does
 
 **The dependency is declared, not inferred from a naming convention.** Every existing plugin in this space recognizes a bundle by where a file sits or what it is called — a note and its same-named attachment folder, a sidecar named after the file beside it. That works until the two things you want bundled do not share a name or a folder. Here you say which files belong together, in the main file's own frontmatter, and nothing depends on what they are called.
 
@@ -82,6 +82,8 @@ Moving and renaming need no command: a bundle follows its main file wherever you
 
 ## Installation
 
+The plugin is not yet listed in [the official Community Plugins repository](https://community.obsidian.md/plugins). Until it is, install it as a beta release.
+
 ### Beta versions
 
 To install the latest beta release of this plugin (regardless if it is available in [the official Community Plugins repository](https://community.obsidian.md) or not), follow these steps:
@@ -94,7 +96,7 @@ To install the latest beta release of this plugin (regardless if it is available
 
 By default, debug messages for this plugin are hidden.
 
-To show them, run the following command:
+To show them, run the following command in the `DevTools Console`:
 
 ```js
 window.DEBUG.enable('file-bundles');

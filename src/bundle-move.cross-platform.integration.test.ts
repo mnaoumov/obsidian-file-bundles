@@ -25,7 +25,15 @@ describe('Moving a bundle', () => {
     const result = await evalInObsidian({
       async callback({ app, lib, MAIN_CONTENT: mainContent }) {
         const SETTLE_DELAY_IN_MS = 2000;
-        const WAIT_TIMEOUT_IN_MS = 20_000;
+
+        /*
+         * Under the transport's ~30s per-closure cap, not at it.
+         * Two waits and two settles share this one budget, so at 20_000 apiece the closure declared 44s.
+         * The eval is killed at the cap first and reported as a bare transport timeout.
+         * That names the harness rather than the wait that overran.
+         * What is waited on here lands in well under a second, so the smaller ceiling costs nothing.
+         */
+        const WAIT_TIMEOUT_IN_MS = 10_000;
 
         async function ensureFolder(path: string): Promise<void> {
           try {

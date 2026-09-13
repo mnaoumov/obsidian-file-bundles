@@ -27,7 +27,7 @@ export class PluginSettingsComponent extends PluginSettingsComponentBase<PluginS
         return 'The frontmatter key cannot be empty';
       }
     });
-    // The same entry syntax the rest of the fleet uses: a plain path, or a regular expression in slashes.
+    // The same entry syntax the author's other plugins use: a plain path, or a regular expression in slashes.
     this.registerValidator('excludedPathPatterns', (value): MaybeReturn<string> => pathsValidator([...value]));
   }
 }

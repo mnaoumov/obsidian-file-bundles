@@ -77,7 +77,7 @@ describe('PluginSettingsComponent', () => {
     });
 
     /*
-     * The exclusion list takes the fleet's usual entry syntax — a plain path, or a regular expression in
+     * The exclusion list takes the usual entry syntax — a plain path, or a regular expression in
      * slashes — so it is the library's own validator that answers here rather than a second dialect.
      */
     it('should accept plain paths and well-formed regular expressions as exclusions', () => {

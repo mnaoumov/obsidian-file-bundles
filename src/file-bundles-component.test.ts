@@ -137,7 +137,7 @@ describe('FileBundlesComponent', () => {
 
   async function activate(path: string): Promise<void> {
     // `createSync__` rather than `TFile.create__`: the latter builds a `TFile` without registering it
-    // In the vault's index, so the workspace could not open it.
+    // in the vault's index, so the workspace could not open it.
     app.vault.createSync__(path, '');
     const file = app.vault.getFileByPath(path);
     const leaf = app.workspace.getLeaf(true);

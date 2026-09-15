@@ -444,7 +444,7 @@ describe('formatBundleMemberEntry', () => {
   beforeEach(() => {
     app = App.createConfigured__();
     // A link is generated for a member that exists; the library only reaches for the vault's raw file map
-    // When asked to name a file that does not.
+    // when asked to name a file that does not.
     app.vault.createFolderSync__('Alpha/assets');
     app.vault.createSync__('Alpha/assets/diagram.png', '');
     app.vault.createFolderSync__('Shared');

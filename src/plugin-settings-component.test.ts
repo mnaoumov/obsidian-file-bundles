@@ -17,13 +17,13 @@ import { PluginSettings } from './plugin-settings.ts';
 type PathsValidator = (paths: string[]) => string | undefined;
 
 interface ProtectedBase {
-  registerValidator(key: string, validator: unknown): void;
-  registerValidators(): void;
+  registerValidator: (key: string, validator: unknown) => void;
+  registerValidators: () => void;
 }
 
 interface RegisteredValidator {
   key: string;
-  validator(value: string): string | undefined;
+  validator: (value: string) => string | undefined;
 }
 
 const protectedBasePrototype = castTo<ProtectedBase>(PluginSettingsComponentBase.prototype);

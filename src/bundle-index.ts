@@ -18,7 +18,7 @@ export interface BundleIndexConstructorOptions {
    * @param path - The vault-relative path to test.
    * @returns Whether the path is excluded.
    */
-  shouldExcludePath?(this: void, path: string): boolean;
+  readonly shouldExcludePath?: (this: void, path: string) => boolean;
 }
 
 /**

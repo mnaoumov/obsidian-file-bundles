@@ -39,7 +39,7 @@ const SETTLE_DELAY_IN_MS = 20;
 
 interface MenuItemStub {
   icon: string;
-  onClick(this: void): void;
+  onClick: (this: void) => void;
   title: string;
 }
 

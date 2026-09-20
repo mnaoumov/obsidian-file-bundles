@@ -225,6 +225,8 @@ export interface TrashBundlePathsParams {
   readonly paths: readonly string[];
 }
 
+const VAULT_ROOT_FOLDER_PATH = '.';
+
 /**
  * Makes a planned set of copies as ONE unit.
  *
@@ -632,12 +634,24 @@ function getOtherOwnPath(declaration: BundleDeclaration, movedPath: string): nul
   return movedPath === declaration.declaringPath ? declaration.mainPath : null;
 }
 
+/**
+ * Answers whether a path sits inside a folder.
+ *
+ * Asked through {@link toFolderPathPrefix} rather than by comparing the folder path itself, so that the
+ * prefix this matches is the very one {@link rebase} goes on to cut.
+ */
 function isUnder(folderPath: string, path: string): boolean {
-  return path.startsWith(`${folderPath}/`);
+  return path.startsWith(toFolderPathPrefix(folderPath));
 }
 
+/**
+ * Answers where a path lands when the folder it sits in moves, keeping its position inside that folder.
+ *
+ * Only the prefix is spelled out here: `join` already collapses a vault-root destination, so a member moving
+ * INTO the root needs nothing of its own.
+ */
 function rebase(path: string, oldFolderPath: string, newFolderPath: string): string {
-  return join(newFolderPath, path.slice(`${oldFolderPath}/`.length));
+  return join(newFolderPath, path.slice(toFolderPathPrefix(oldFolderPath).length));
 }
 
 function toBasenameWithoutExtension(path: string): string {
@@ -678,6 +692,19 @@ function toEntries(app: App, declaration: BundleDeclaration, kind: BundleMemberK
         member
       })
     );
+}
+
+/**
+ * Answers the prefix a folder puts on every path inside it.
+ *
+ * The vault ROOT — what `dirname` answers for a file at the top of the vault — is the case this exists for:
+ * it prefixes nothing, so every path in the vault is under it and none of them has anything to cut. Reading
+ * it as an ordinary folder makes the prefix the two real characters of `./`, which is false for every path
+ * there is and so left a bundle declared at the root carrying NOTHING, and would cut two real characters off
+ * a root-level path on the way back.
+ */
+function toFolderPathPrefix(folderPath: string): string {
+  return folderPath === VAULT_ROOT_FOLDER_PATH ? '' : `${folderPath}/`;
 }
 
 function toMainMember(declaration: BundleDeclaration): BundleMember {

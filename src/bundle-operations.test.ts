@@ -36,6 +36,7 @@ interface DeclarationOverrides {
 
 const ALPHA_PATH = 'Alpha/alpha.md';
 const FRONTMATTER_KEY = 'file-bundles';
+const ROOT_ALPHA_PATH = 'alpha.md';
 
 function createDeclaration(overrides: DeclarationOverrides = {}): BundleDeclaration {
   const declaringPath = overrides.declaringPath ?? ALPHA_PATH;
@@ -169,6 +170,51 @@ describe('planBundleMove', () => {
     });
 
     expect(moves).toEqual([{ newPath: 'Beta/report.html', oldPath: 'Alpha/report.html' }]);
+  });
+
+  /*
+   * The vault ROOT is a folder like any other, and `dirname` names it `.` rather than with a path. Reading
+   * that as an ordinary folder asks whether every member starts with `./`, which nothing in a vault does —
+   * so a bundle declared at the root used to carry nothing at all.
+   */
+  it('should move a relative member of a main file at the vault root', () => {
+    const moves = planBundleMove({
+      declaration: createDeclaration({
+        declaringPath: ROOT_ALPHA_PATH,
+        relativePaths: ['assets/diagram.png']
+      }),
+      newPath: 'Beta/alpha.md',
+      oldPath: ROOT_ALPHA_PATH
+    });
+
+    expect(moves).toEqual([{ newPath: 'Beta/assets/diagram.png', oldPath: 'assets/diagram.png' }]);
+  });
+
+  /*
+   * The mirror image, and the reason the root is named rather than merely admitted: cutting the two
+   * characters of `./` off a path that never carried them would take real ones with it.
+   */
+  it('should move a relative member into the vault root when the main file lands there', () => {
+    const moves = planBundleMove({
+      declaration: createDeclaration({ relativePaths: ['Alpha/assets/diagram.png'] }),
+      newPath: ROOT_ALPHA_PATH,
+      oldPath: ALPHA_PATH
+    });
+
+    expect(moves).toEqual([{ newPath: 'assets/diagram.png', oldPath: 'Alpha/assets/diagram.png' }]);
+  });
+
+  it('should take a sidecar note at the vault root along when its main file moves', () => {
+    const moves = planBundleMove({
+      declaration: createDeclaration({
+        declaringPath: 'report.html.md',
+        mainPath: 'report.html'
+      }),
+      newPath: 'Beta/report.html',
+      oldPath: 'report.html'
+    });
+
+    expect(moves).toEqual([{ newPath: 'Beta/report.html.md', oldPath: 'report.html.md' }]);
   });
 
   it('should ignore a moved path that is neither the main file nor the declaring note', () => {
@@ -426,6 +472,48 @@ describe('planBundleDuplication', () => {
       { newPath: 'Alpha/report 1.html', oldPath: 'Alpha/report.html' },
       { newPath: 'Alpha/report 1.html.md', oldPath: 'Alpha/report.html.md' },
       { newPath: 'Alpha/report-styles.css', oldPath: 'Alpha/report-styles.css' }
+    ]);
+  });
+
+  it('should mirror a relative member of a main file at the vault root', () => {
+    const copies = planBundleDuplication({
+      declaration: createDeclaration({
+        declaringPath: ROOT_ALPHA_PATH,
+        relativePaths: ['assets/diagram.png']
+      }),
+      newMainPath: 'Beta/alpha.md'
+    });
+
+    expect(copies).toEqual([
+      { newPath: 'Beta/alpha.md', oldPath: ROOT_ALPHA_PATH },
+      { newPath: 'Beta/assets/diagram.png', oldPath: 'assets/diagram.png' }
+    ]);
+  });
+
+  it('should mirror a relative member into the vault root when the copy lands there', () => {
+    const copies = planBundleDuplication({
+      declaration: createDeclaration({ relativePaths: ['Alpha/assets/diagram.png'] }),
+      newMainPath: ROOT_ALPHA_PATH
+    });
+
+    expect(copies).toEqual([
+      { newPath: ROOT_ALPHA_PATH, oldPath: ALPHA_PATH },
+      { newPath: 'assets/diagram.png', oldPath: 'Alpha/assets/diagram.png' }
+    ]);
+  });
+
+  it('should take a sidecar note at the vault root along, named after the copy', () => {
+    const copies = planBundleDuplication({
+      declaration: createDeclaration({
+        declaringPath: 'report.html.md',
+        mainPath: 'report.html'
+      }),
+      newMainPath: 'Beta/report.html'
+    });
+
+    expect(copies).toEqual([
+      { newPath: 'Beta/report.html', oldPath: 'report.html' },
+      { newPath: 'Beta/report.html.md', oldPath: 'report.html.md' }
     ]);
   });
 
@@ -747,6 +835,27 @@ describe('the vault operations', () => {
       });
 
       expect(readFile('Alpha/report.html.md')).toContain('/Shared/report.html');
+    });
+
+    /*
+     * A declaring note at the vault ROOT has the whole vault as its folder, so its main file is relative to
+     * it wherever that file sits — the same answer the parser's own anchoring inference gives when it reads
+     * an entry back, and the same one the move planner now acts on.
+     */
+    it('should write a main file relative to a declaring note at the vault root', async () => {
+      createFile('report.html.md', '---\nfile-bundles: {}\n---\n');
+      createFile('Alpha/report.html');
+
+      await rewriteBundleDeclaration({
+        app: app.asOriginalType__(),
+        declaration: createDeclaration({
+          declaringPath: 'report.html.md',
+          mainPath: 'Alpha/report.html'
+        }),
+        frontmatterKey: FRONTMATTER_KEY
+      });
+
+      expect(readFile('report.html.md')).toContain('./Alpha/report.html');
     });
   });
 });

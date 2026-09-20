@@ -45,6 +45,21 @@ Manual equivalent: **File Bundles: Delete the bundle the active file belongs to*
 
 This is the same route a bundle takes when you delete its main file any other way: the command only trashes the main file, and the ordinary deletion path carries the rest.
 
+## Duplicate the whole bundle
+
+Duplicating copies the main file, the note that declares it, and every dependent anchored to it with `./` — and then rewrites the copy's declaration, so the duplicate names its own files rather than the original's. A rooted `/…` member is shared instead of copied: it states a home of its own, so both bundles point at the same file.
+
+```code-button
+---
+caption: Duplicate the bundle of the active file
+---
+require('/demoSetup.ts').runCommand(app, 'duplicate-bundle');
+```
+
+Manual equivalent: **File Bundles: Duplicate the bundle the active file belongs to**.
+
+Try it with `Trip note.md` open: you get `Trip note 1.md` beside it, carrying a `Trip assets 1` folder of its own, and the copy's frontmatter names `./Trip assets 1` rather than the folder it was copied from. Obsidian's own **Make a copy** does none of that — it copies the one file, and the copy is left claiming the original's dependents.
+
 ## What it does not take over
 
 This plugin never registers a rename/delete handler of its own. Updating the links to a renamed note, and moving the attachments it owns, belong to [Advanced Rename and Delete Handler](https://github.com/mnaoumov/obsidian-advanced-rename-and-delete-handler) — one vault, one owner of that behavior. File Bundles moves only the dependents a bundle declares.

@@ -12,9 +12,9 @@ Idea captured from a Discord exchange with `rakudo` (2026-08-24 to 2026-08-26). 
 
 ## Current state
 
-**Built, not yet released.** The declaration parser, the bundle index, the transactional operations and the display-only File Explorer hiding are all in place, wired together, and covered by unit tests at 100% plus four behavioral integration suites that pass against a real Obsidian 1.14.0 (move, rename, delete, unlock). `README.md` and the demo vault describe what the plugin actually does.
+**Built, not yet released.** The declaration parser, the bundle index, the transactional operations and the display-only File Explorer hiding are all in place, wired together, and covered by unit tests at 100% plus five behavioral integration suites (move, rename, delete, unlock, duplicate). `README.md` and the demo vault describe what the plugin actually does.
 
-**Duplicate is the one operation of the four that is NOT built.** `obsidian-dev-utils`' `VaultTransaction` has no `copy` and its `create()` takes a `string`, so a bundle holding an image or a PDF cannot be duplicated through it — and the alternatives are the hand-rolled rollback this plugin's invariants forbid, or a command silently correct for notes and lossy for attachments. It is blocked on a `copy` reaching `VaultTransaction` upstream. Neither the README nor the demo vault promises it, so nothing needs correcting when it lands — only adding.
+**All four bundle operations are built.** Duplicate was the last of them, and it waited for `obsidian-dev-utils` 104 to give `VaultTransaction` a `copy`: `create()` takes a `string`, so the alternatives were the hand-rolled rollback this plugin's invariants forbid, or a command silently correct for notes and lossy for every attachment. Unlike the other three it reacts to no vault event, because Obsidian raises none for a duplication — it is a command of this plugin's own, and it deliberately does not consult the unlocked list, since nothing happens to the original bundle at all.
 
 ## The declaration
 

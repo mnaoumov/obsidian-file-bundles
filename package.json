@@ -1,7 +1,7 @@
 {
   "name": "file-bundles",
   "version": "0.0.0",
-  "description": "Declare which files and folders a file depends on, and move, rename or delete them as one locked bundle.",
+  "description": "Declare which files and folders a file depends on, and move, rename, duplicate or delete them as one locked bundle.",
   "keywords": [],
   "homepage": "https://github.com/mnaoumov/obsidian-file-bundles#readme",
   "bugs": "https://github.com/mnaoumov/obsidian-file-bundles/issues",

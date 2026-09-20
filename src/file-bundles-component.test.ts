@@ -156,9 +156,10 @@ describe('FileBundlesComponent', () => {
    * Rename and Delete Handler refuse to load beside this plugin, so what is NOT registered is a correctness
    * property rather than tidiness.
    */
-  it('should register its three commands and patch nothing', () => {
+  it('should register its four commands and patch nothing', () => {
     createComponent();
-    expect(commands.map((command) => command.id)).toEqual(['show-bundle', 'toggle-lock', 'delete-bundle']);
+    expect(commands.map((command) => command.id))
+      .toEqual(['show-bundle', 'toggle-lock', 'delete-bundle', 'duplicate-bundle']);
   });
 
   it('should say so when there is no active file', () => {
@@ -323,6 +324,83 @@ describe('FileBundlesComponent', () => {
       await sleep({ milliseconds: SETTLE_DELAY_IN_MS });
 
       expect(showNoticeMock).toHaveBeenCalledWith('File Bundles: no bundle declared for Alpha/unrelated.md');
+    });
+  });
+
+  describe('duplicating a bundle', () => {
+    function readFile(path: string): string {
+      const file = app.vault.getFileByPath(path);
+      if (!file) {
+        throw new Error(`The test vault has no ${path}`);
+      }
+      return app.vault.readSync__(file);
+    }
+
+    /*
+     * Duplicating into the folder the bundle already sits in is the ordinary case, and it is the one where
+     * every dependent's mirrored destination is its own path — so the copies landing beside the originals,
+     * rather than nowhere, is the whole behavior.
+     */
+    it('should copy the main file and its dependents, leaving the originals', async () => {
+      await activate('Alpha/alpha.md');
+      app.vault.createFolderSync__('Alpha/assets');
+      app.vault.createSync__('Alpha/assets/diagram.png', 'diagram');
+      declare({
+        declaringPath: 'Alpha/alpha.md',
+        members: [{
+          anchoring: BundleMemberAnchoring.Relative,
+          isAnchorPrefixMissing: false,
+          isWikilink: true,
+          kind: BundleMemberKind.File,
+          path: 'Alpha/assets/diagram.png'
+        }]
+      });
+      createComponent();
+
+      invokeCommand('duplicate-bundle');
+      await sleep({ milliseconds: SETTLE_DELAY_IN_MS });
+
+      expect(app.vault.getFileByPath('Alpha/alpha 1.md')).not.toBeNull();
+      expect(readFile('Alpha/assets/diagram 1.png')).toBe('diagram');
+      expect(app.vault.getFileByPath('Alpha/assets/diagram.png')).not.toBeNull();
+      expect(showNoticeMock)
+        .toHaveBeenCalledWith('File Bundles: duplicated the bundle of Alpha/alpha.md as Alpha/alpha 1.md');
+    });
+
+    /*
+     * The copy arrives carrying a verbatim copy of the original's declaration, which names the original's
+     * members. Rewriting it is what makes the duplicate a bundle of its own.
+     */
+    it('should rewrite the copy declaration to name its own members', async () => {
+      await activate('Alpha/alpha.md');
+      app.vault.createSync__('Alpha/diagram.png', 'diagram');
+      declare({
+        declaringPath: 'Alpha/alpha.md',
+        members: [{
+          anchoring: BundleMemberAnchoring.Relative,
+          isAnchorPrefixMissing: false,
+          isWikilink: true,
+          kind: BundleMemberKind.File,
+          path: 'Alpha/diagram.png'
+        }]
+      });
+      createComponent();
+
+      invokeCommand('duplicate-bundle');
+      await sleep({ milliseconds: SETTLE_DELAY_IN_MS });
+
+      expect(readFile('Alpha/alpha 1.md')).toContain('./diagram 1.png');
+    });
+
+    it('should do nothing when the active file belongs to no bundle', async () => {
+      await activate('Alpha/unrelated.md');
+      createComponent();
+
+      invokeCommand('duplicate-bundle');
+      await sleep({ milliseconds: SETTLE_DELAY_IN_MS });
+
+      expect(showNoticeMock).toHaveBeenCalledWith('File Bundles: no bundle declared for Alpha/unrelated.md');
+      expect(app.vault.getFileByPath('Alpha/unrelated 1.md')).toBeNull();
     });
   });
 

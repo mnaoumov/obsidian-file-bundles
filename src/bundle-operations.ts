@@ -4,6 +4,7 @@ import {
   parseFrontmatter,
   setFrontmatter
 } from 'obsidian-dev-utils/obsidian/frontmatter';
+import { getAvailablePath } from 'obsidian-dev-utils/obsidian/vault';
 import { VaultTransaction } from 'obsidian-dev-utils/obsidian/vault-transaction';
 import {
   basename,
@@ -24,6 +25,21 @@ import {
 } from './bundle-declaration.ts';
 
 /**
+ * Parameters for {@link applyBundleCopies}.
+ */
+export interface ApplyBundleCopiesParams {
+  /**
+   * The Obsidian application instance.
+   */
+  readonly app: App;
+
+  /**
+   * The copies to make, in order.
+   */
+  readonly copies: readonly BundleMemberCopy[];
+}
+
+/**
  * Parameters for {@link applyBundleMoves}.
  */
 export interface ApplyBundleMovesParams {
@@ -36,6 +52,25 @@ export interface ApplyBundleMovesParams {
    * The moves to perform, in order.
    */
   readonly moves: readonly BundleMemberMove[];
+}
+
+/**
+ * One copy a duplication will make.
+ *
+ * Structurally the same pair as a {@link BundleMemberMove} and deliberately a type of its own: a copy leaves
+ * the original where it is, so the two are the same shape saying different things about the old path.
+ */
+export interface BundleMemberCopy {
+  /**
+   * Where the copy lands. The vault may hand the copy a different path when this one is taken, which is why
+   * {@link applyBundleCopies} answers with what it actually got.
+   */
+  readonly newPath: string;
+
+  /**
+   * The resource being copied, which stays where it is.
+   */
+  readonly oldPath: string;
 }
 
 /**
@@ -67,6 +102,21 @@ export interface PlanBundleDeletionParams {
    * Every OTHER bundle in the vault. A dependent one of them also declares outlives this deletion.
    */
   readonly otherDeclarations: readonly BundleDeclaration[];
+}
+
+/**
+ * Parameters for {@link planBundleDuplication}.
+ */
+export interface PlanBundleDuplicationParams {
+  /**
+   * The bundle being duplicated.
+   */
+  readonly declaration: BundleDeclaration;
+
+  /**
+   * The path the copy of the main file is to take.
+   */
+  readonly newMainPath: string;
 }
 
 /**
@@ -121,6 +171,21 @@ export interface RewriteBundleDeclarationParams {
 }
 
 /**
+ * Parameters for {@link toDuplicatedDeclaration}.
+ */
+export interface ToDuplicatedDeclarationParams {
+  /**
+   * The copies that were made, with the paths the vault actually gave them.
+   */
+  readonly copies: readonly BundleMemberCopy[];
+
+  /**
+   * The declaration of the bundle that was duplicated.
+   */
+  readonly declaration: BundleDeclaration;
+}
+
+/**
  * Parameters for {@link toMovedDeclaration}.
  */
 export interface ToMovedDeclarationParams {
@@ -158,6 +223,40 @@ export interface TrashBundlePathsParams {
    * The paths to trash.
    */
   readonly paths: readonly string[];
+}
+
+/**
+ * Makes a planned set of copies as ONE unit.
+ *
+ * Every copy goes through the library's {@link VaultTransaction}, so a failure part-way removes the copies
+ * already made rather than leaving half a duplicate behind. The content is copied byte for byte, which is
+ * the whole reason this operation waited for `copy` to reach the transaction: an image, a PDF or an HTML
+ * file's assets cannot survive a round trip through a `string`.
+ *
+ * Each destination is resolved to an available path FIRST, and that is load-bearing rather than defensive.
+ * The library copies nothing at all when the destination is the source's own path — which is exactly what a
+ * planned destination is when a bundle is duplicated into the folder it already sits in.
+ *
+ * @param params - The parameters.
+ * @returns A {@link Promise} resolving to the copies with the paths the vault actually gave them.
+ */
+export async function applyBundleCopies(params: ApplyBundleCopiesParams): Promise<BundleMemberCopy[]> {
+  const { app, copies } = params;
+
+  if (copies.length === 0) {
+    return [];
+  }
+
+  const appliedCopies: BundleMemberCopy[] = [];
+
+  await using transaction = new VaultTransaction({ app });
+  for (const copy of copies) {
+    const newPath = await transaction.copy(copy.oldPath, getAvailablePath(app, copy.newPath));
+    appliedCopies.push({ newPath, oldPath: copy.oldPath });
+  }
+  await transaction.commit();
+
+  return appliedCopies;
 }
 
 /**
@@ -223,6 +322,62 @@ export function planBundleDeletion(params: PlanBundleDeletionParams): string[] {
   }
 
   return paths;
+}
+
+/**
+ * Answers which resources a bundle's duplication copies, and where each copy goes.
+ *
+ * A `./…` member is anchored to the main file, so the copy gets a copy of its own, mirroring where it sat
+ * relative to the main file. A `/…` member is NOT copied: it names a home of its own, so the duplicate
+ * points at the same shared file rather than growing a second copy of it — the same operational difference
+ * between the two prefixes that {@link planBundleMove} turns on.
+ *
+ * The main file leads, and the declaring note follows it when the bundle is declared by a sidecar: without
+ * that copy the duplicate would have no declaration at all. A sidecar named after its main is renamed onto
+ * the copy's name, for the reason {@link planBundleRename} spells out — the naming is what makes the pair
+ * legible.
+ *
+ * A member inside a folder member that is itself being copied is left out: the folder's own copy carries it.
+ *
+ * @param params - The parameters.
+ * @returns The copies to make, in order.
+ */
+export function planBundleDuplication(params: PlanBundleDuplicationParams): BundleMemberCopy[] {
+  const { declaration, newMainPath } = params;
+
+  const oldFolderPath = dirname(declaration.mainPath);
+  const newFolderPath = dirname(newMainPath);
+
+  const copies: BundleMemberCopy[] = [{ newPath: newMainPath, oldPath: declaration.mainPath }];
+
+  if (declaration.declaringPath !== declaration.mainPath) {
+    copies.push({
+      newPath: toDuplicatedDeclaringPath(declaration, newMainPath),
+      oldPath: declaration.declaringPath
+    });
+  }
+
+  const copiedFolderPaths: string[] = [];
+  for (const member of [...declaration.members].sort(byPathDepth)) {
+    if (member.anchoring !== BundleMemberAnchoring.Relative || !isUnder(oldFolderPath, member.path)) {
+      continue;
+    }
+
+    if (copiedFolderPaths.some((folderPath) => isUnder(folderPath, member.path))) {
+      continue;
+    }
+
+    copies.push({
+      newPath: rebase(member.path, oldFolderPath, newFolderPath),
+      oldPath: member.path
+    });
+
+    if (member.kind === BundleMemberKind.Folder) {
+      copiedFolderPaths.push(member.path);
+    }
+  }
+
+  return copies;
 }
 
 /**
@@ -396,6 +551,22 @@ export async function rewriteBundleDeclaration(params: RewriteBundleDeclarationP
 }
 
 /**
+ * Answers what the COPY's declaration says, so that the duplicate names its own members rather than the
+ * original's.
+ *
+ * A member that was not copied keeps its path, and that is the point rather than a fallback: a rooted member
+ * is shared with the original by design, so the copy's declaration names the very same file.
+ *
+ * @param params - The parameters.
+ * @returns The declaration the copy of the declaring note is to carry.
+ */
+export function toDuplicatedDeclaration(params: ToDuplicatedDeclarationParams): BundleDeclaration {
+  const { copies, declaration } = params;
+
+  return toRemappedDeclaration(declaration, new Map(copies.map((copy) => [copy.oldPath, copy.newPath])));
+}
+
+/**
  * Answers what the declaration says once a planned set of moves has been made.
  *
  * Applied to the declaration this plugin holds, not to the note — the note is rewritten from the result, so
@@ -415,27 +586,7 @@ export function toMovedDeclaration(params: ToMovedDeclarationParams): BundleDecl
   const newPathsByOldPath = new Map(moves.map((move) => [move.oldPath, move.newPath]));
   newPathsByOldPath.set(oldPath, newPath);
 
-  function moved(path: string): string {
-    const directMove = newPathsByOldPath.get(path);
-    if (directMove !== undefined) {
-      return directMove;
-    }
-
-    for (const [movedOldPath, movedNewPath] of newPathsByOldPath) {
-      if (isUnder(movedOldPath, path)) {
-        return rebase(path, movedOldPath, movedNewPath);
-      }
-    }
-
-    return path;
-  }
-
-  return {
-    ...declaration,
-    declaringPath: moved(declaration.declaringPath),
-    mainPath: moved(declaration.mainPath),
-    members: declaration.members.map((member) => ({ ...member, path: moved(member.path) }))
-  };
+  return toRemappedDeclaration(declaration, newPathsByOldPath);
 }
 
 /**
@@ -495,6 +646,28 @@ function toBasenameWithoutExtension(path: string): string {
   return extension === '' ? name : name.slice(0, -extension.length);
 }
 
+/**
+ * Answers where the copy of a sidecar declaring note goes.
+ *
+ * It mirrors where the note sat relative to the main file, and takes the copy's name when it was named after
+ * the original — so `report.html.md` beside `report.html` becomes `report 1.html.md` beside `report 1.html`
+ * rather than keeping a name that names the wrong file.
+ */
+function toDuplicatedDeclaringPath(declaration: BundleDeclaration, newMainPath: string): string {
+  const oldFolderPath = dirname(declaration.mainPath);
+  const mirroredPath = isUnder(oldFolderPath, declaration.declaringPath)
+    ? rebase(declaration.declaringPath, oldFolderPath, dirname(newMainPath))
+    : declaration.declaringPath;
+
+  const oldMainName = basename(declaration.mainPath);
+  const declaringName = basename(declaration.declaringPath);
+  if (!declaringName.startsWith(oldMainName)) {
+    return mirroredPath;
+  }
+
+  return join(dirname(mirroredPath), `${basename(newMainPath)}${declaringName.slice(oldMainName.length)}`);
+}
+
 function toEntries(app: App, declaration: BundleDeclaration, kind: BundleMemberKind): string[] {
   return declaration.members
     .filter((member) => member.kind === kind)
@@ -517,5 +690,39 @@ function toMainMember(declaration: BundleDeclaration): BundleMember {
     isWikilink: true,
     kind: BundleMemberKind.File,
     path: declaration.mainPath
+  };
+}
+
+/**
+ * Rewrites every path a declaration holds through a map of old path to new path.
+ *
+ * Shared by the move and the duplicate because the mapping is the same question both times — where does this
+ * path's content live now — and only the way the map was built differs. A path the map does not name is
+ * carried by an ancestor folder's entry when one covers it, and is otherwise left alone.
+ */
+function toRemappedDeclaration(
+  declaration: BundleDeclaration,
+  newPathsByOldPath: ReadonlyMap<string, string>
+): BundleDeclaration {
+  function remapped(path: string): string {
+    const directPath = newPathsByOldPath.get(path);
+    if (directPath !== undefined) {
+      return directPath;
+    }
+
+    for (const [mappedOldPath, mappedNewPath] of newPathsByOldPath) {
+      if (isUnder(mappedOldPath, path)) {
+        return rebase(path, mappedOldPath, mappedNewPath);
+      }
+    }
+
+    return path;
+  }
+
+  return {
+    ...declaration,
+    declaringPath: remapped(declaration.declaringPath),
+    mainPath: remapped(declaration.mainPath),
+    members: declaration.members.map((member) => ({ ...member, path: remapped(member.path) }))
   };
 }

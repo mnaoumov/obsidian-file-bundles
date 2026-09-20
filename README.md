@@ -69,7 +69,7 @@ The main file and the note that declares the bundle are always members. You neve
 
 ## Usage
 
-Three commands, and the same actions on the File Explorer's context menu for any file a bundle claims:
+Four commands, and the locking and deleting ones on the File Explorer's context menu for any file a bundle claims:
 
 - **File Bundles: Show the bundle the active file belongs to**
   - reports what travels with the file you are looking at, whether it is a main file or one of its dependents.
@@ -77,6 +77,8 @@ Three commands, and the same actions on the File Explorer's context menu for any
   - unlocking reveals the dependents and stops anything propagating; locking again restores both. Your note is never edited either way.
 - **File Bundles: Delete the bundle the active file belongs to**
   - deletes the main file and everything the declaration names, except anything another bundle also claims.
+- **File Bundles: Duplicate the bundle the active file belongs to**
+  - copies the main file, the note declaring it, and every dependent anchored to it with `./`, then writes the copy's own declaration so the duplicate names its own files. A rooted `/…` member is shared rather than copied — it states a home of its own, so both bundles point at it. Use this rather than Obsidian's own **Make a copy**, which copies the main file alone and leaves the copy claiming the original's dependents.
 
 Moving and renaming need no command: a bundle follows its main file wherever you drag it.
 

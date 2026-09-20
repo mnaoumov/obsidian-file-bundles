@@ -9,11 +9,21 @@ import type { MenuEventRegistrar } from 'obsidian-dev-utils/obsidian/menu-event-
 
 import { invokeAsyncSafely } from 'obsidian-dev-utils/async';
 import { ComponentEx } from 'obsidian-dev-utils/obsidian/components/component-ex';
-import { trashSafe } from 'obsidian-dev-utils/obsidian/vault';
+import {
+  getAvailablePath,
+  trashSafe
+} from 'obsidian-dev-utils/obsidian/vault';
 
 import type { BundleDeclaration } from './bundle-declaration.ts';
 import type { BundleIndexComponent } from './bundle-index-component.ts';
 import type { PluginSettingsComponent } from './plugin-settings-component.ts';
+
+import {
+  applyBundleCopies,
+  planBundleDuplication,
+  rewriteBundleDeclaration,
+  toDuplicatedDeclaration
+} from './bundle-operations.ts';
 
 /**
  * Parameters for the {@link FileBundlesComponent} constructor.
@@ -109,6 +119,14 @@ export class FileBundlesComponent extends ComponentEx {
       name: 'Delete the bundle the active file belongs to'
     });
 
+    this.commandRegistrar.addCommand({
+      callback: () => {
+        invokeAsyncSafely(() => this.duplicateBundleOfActiveFile());
+      },
+      id: 'duplicate-bundle',
+      name: 'Duplicate the bundle the active file belongs to'
+    });
+
     this.registerDisposable(this.menuEventRegistrar.registerFileMenuEventHandler((menu, abstractFile) => {
       this.addMenuItems(menu, abstractFile);
     }));
@@ -158,6 +176,51 @@ export class FileBundlesComponent extends ComponentEx {
     }
 
     await this.deleteBundle(declaration);
+  }
+
+  /**
+   * Duplicates the bundle: the main file, the note declaring it, and a copy of every dependent anchored to
+   * the main file, written as ONE transaction.
+   *
+   * Nothing else in this plugin reacts to a duplication, because Obsidian raises no event for one — so
+   * unlike move, rename and delete, this is the plugin's own operation rather than a propagation of the
+   * vault's. That is also why it does not consult the unlocked list: unlocking says "do not move my files
+   * when I move the main one", and here nothing happens to the original at all.
+   */
+  private async duplicateBundle(declaration: BundleDeclaration): Promise<void> {
+    const copies = planBundleDuplication({
+      declaration,
+      newMainPath: getAvailablePath(this.app, declaration.mainPath)
+    });
+
+    const duplicatedDeclaration = toDuplicatedDeclaration({
+      copies: await applyBundleCopies({ app: this.app, copies }),
+      declaration
+    });
+
+    /*
+     * The copy carries a verbatim copy of the original's declaration, which names the original's members.
+     * Rewriting it is what makes the duplicate a bundle of its own rather than a second claimant on the
+     * files it was copied from.
+     */
+    await rewriteBundleDeclaration({
+      app: this.app,
+      declaration: duplicatedDeclaration,
+      frontmatterKey: this.pluginSettingsComponent.settings.frontmatterKey
+    });
+
+    this.pluginNoticeComponent.showNotice(
+      `File Bundles: duplicated the bundle of ${declaration.mainPath} as ${duplicatedDeclaration.mainPath}`
+    );
+  }
+
+  private async duplicateBundleOfActiveFile(): Promise<void> {
+    const declaration = this.findBundleOfActiveFile();
+    if (!declaration) {
+      return;
+    }
+
+    await this.duplicateBundle(declaration);
   }
 
   private findBundleOf(path: string): BundleDeclaration | null {

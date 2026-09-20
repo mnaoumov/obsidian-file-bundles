@@ -19,9 +19,69 @@ const DEMO_VAULT_TEST_FILES = 'src/**/*.demo-vault.integration.test.ts';
  */
 const DEMO_VAULT_TIMEOUT_IN_MILLISECONDS = 600_000;
 
+/**
+ * The community-store frames, desktop and mobile.
+ *
+ * Named `*.desktop-capture.` / `*.android-capture.` rather than `*.desktop.` / `*.android.` so they match
+ * NONE of the standard project globs: capturing is an explicit operation (`npm run capture:screenshots`),
+ * not something every test run does. Folding them in would rewrite nine PNGs on every run and dirty the
+ * tree mid-release.
+ */
+const DESKTOP_CAPTURE_TEST_FILES = 'src/**/*.desktop-capture.integration.test.ts';
+const ANDROID_CAPTURE_TEST_FILES = 'src/**/*.android-capture.integration.test.ts';
+
+/**
+ * The AVD the mobile frames are taken on: 900x1600 at density 320, which is exactly the size the community
+ * store asks for, so the capture needs no crop, no rescale and no letterbox.
+ *
+ * The shared `obsidian_test` AVD the integration suites drive is a Pixel 10 Pro XL at 1344x2992 and cannot
+ * produce it. Resizing it at runtime is not an option either: the display change recreates the activity,
+ * and with it the WebView the Appium session is attached to.
+ */
+const SCREENSHOT_AVD_NAME = 'obsidian_screenshots';
+
+const APPIUM_URL = 'http://localhost:4723';
+
+/**
+ * The screenshots AVD is cold-booted and rarely used, so Obsidian's first layout on it is far slower than
+ * on the well-warmed shared one; the 90s default expires while it is still starting up.
+ */
+const LAYOUT_READY_TIMEOUT_IN_MILLISECONDS = 240_000;
+
+/**
+ * A capture is a walk — stage the tree, open the drawer, settle, photograph — repeated once per frame,
+ * with a full-screen PNG crossing the transport each time. The standard projects' budgets cover a single
+ * assertion, not that.
+ */
+const CAPTURE_TIMEOUT_IN_MILLISECONDS = 600_000;
+
 export const config = defineObsidianPluginVitestConfig({
   customProjects(context: ObsidianPluginVitestConfigContext): TestProjectConfiguration[] {
     return [
+      {
+        test: {
+          ...context.android,
+          environmentOptions: {
+            obsidianTransport: {
+              appiumUrl: APPIUM_URL,
+              avdName: SCREENSHOT_AVD_NAME,
+              layoutReadyTimeoutInMilliseconds: LAYOUT_READY_TIMEOUT_IN_MILLISECONDS,
+              type: 'obsidian-android-appium'
+            }
+          },
+          include: [ANDROID_CAPTURE_TEST_FILES],
+          name: 'capture-screenshots:android',
+          testTimeout: CAPTURE_TIMEOUT_IN_MILLISECONDS
+        }
+      },
+      {
+        test: {
+          ...context.desktop,
+          include: [DESKTOP_CAPTURE_TEST_FILES],
+          name: 'capture-screenshots:desktop',
+          testTimeout: CAPTURE_TIMEOUT_IN_MILLISECONDS
+        }
+      },
       {
         test: {
           ...context.desktop,

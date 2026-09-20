@@ -94,7 +94,7 @@ The main file and the note that declares the bundle are always members. You neve
 Four commands, and the locking and deleting ones on the File Explorer's context menu for any file a bundle claims:
 
 - **File Bundles: Show the bundle the active file belongs to**
-  - reports what travels with the file you are looking at, whether it is a main file or one of its dependents.
+  - reports what travels with the file you are looking at, whether it is a main file, the note declaring one, or one of the dependents.
 - **File Bundles: Lock or unlock the bundle the active file belongs to**
   - unlocking reveals the dependents and stops anything propagating; locking again restores both. Your note is never edited either way.
 - **File Bundles: Delete the bundle the active file belongs to**

@@ -25,6 +25,23 @@ const MAIN_CONTENT = [
  */
 const MEMBER_BYTES = [137, 80, 78, 71, 13, 10, 26, 10, 0, 128, 254, 255];
 
+/*
+ * The sidecar shape: a binary main cannot carry frontmatter, so a note declares the bundle on its behalf.
+ * Obsidian will not open an HTML file, so the sidecar is the only half of the pair that can ever be the
+ * active file — which is why the command has to find the bundle from it.
+ */
+const SIDECAR_CONTENT = [
+  '---',
+  'file-bundles:',
+  '  main: "[[./report.html]]"',
+  '  files:',
+  '    - "[[./report-styles.css]]"',
+  '---',
+  '',
+  'The sidecar note for `report.html`.',
+  ''
+].join('\n');
+
 const PLUGIN_ID = 'file-bundles';
 const TEST_TIMEOUT_IN_MS = 120_000;
 
@@ -163,5 +180,93 @@ describe('Duplicating a bundle', () => {
 
     // The copy declares its OWN member rather than the original's.
     expect(result.declaration).toContain('./assets/diagram 1.png');
+  });
+
+  /*
+   * Run from the SIDECAR, which is the only file of this pair a user can have open. Until the index answered
+   * for a declaring note as well as for a main file, every command reported `no bundle declared` here.
+   */
+  it('should duplicate a sidecar-declared bundle from the declaring note', { timeout: TEST_TIMEOUT_IN_MS }, async () => {
+    const vaultPath = getTemporaryVault().path;
+
+    await evalInObsidian({
+      async callback({
+        app,
+        lib,
+        SIDECAR_CONTENT: sidecarContent
+      }) {
+        const SETTLE_DELAY_IN_MS = 1500;
+        const WAIT_TIMEOUT_IN_MS = 15_000;
+
+        async function create(path: string, content: string): Promise<void> {
+          try {
+            await app.vault.create(path, content);
+          } catch {
+            // Already there.
+          }
+        }
+
+        try {
+          await app.vault.createFolder('SidecarDuplicateTest');
+        } catch {
+          // Already there.
+        }
+
+        await create('SidecarDuplicateTest/report.html', '<!doctype html>\n<title>Quarterly report</title>\n');
+        await create('SidecarDuplicateTest/report-styles.css', 'body { color: red; }\n');
+        await create('SidecarDuplicateTest/report.html.md', sidecarContent);
+
+        await lib.waitUntil({
+          message: 'the sidecar declaration to be parsed',
+          predicate: () => {
+            const file = app.vault.getFileByPath('SidecarDuplicateTest/report.html.md');
+            return !!file && !!app.metadataCache.getFileCache(file)?.frontmatter;
+          },
+          timeoutInMilliseconds: WAIT_TIMEOUT_IN_MS
+        });
+        await sleep(SETTLE_DELAY_IN_MS);
+      },
+      input: { SIDECAR_CONTENT },
+      vaultPath
+    });
+
+    const result = await evalInObsidian({
+      async callback({ app, lib, PLUGIN_ID: pluginId }) {
+        const WAIT_TIMEOUT_IN_MS = 15_000;
+
+        const sidecarFile = app.vault.getFileByPath('SidecarDuplicateTest/report.html.md');
+        if (sidecarFile) {
+          await app.workspace.getLeaf(false).openFile(sidecarFile);
+        }
+
+        app.commands.executeCommandById(`${pluginId}:duplicate-bundle`);
+
+        await lib.waitUntil({
+          message: 'the duplicated sidecar to arrive',
+          predicate: () => !!app.vault.getFileByPath('SidecarDuplicateTest/report 1.html.md'),
+          timeoutInMilliseconds: WAIT_TIMEOUT_IN_MS
+        });
+
+        const copiedSidecar = app.vault.getFileByPath('SidecarDuplicateTest/report 1.html.md');
+
+        return {
+          declaration: copiedSidecar ? await app.vault.read(copiedSidecar) : '',
+          hasCopiedMain: !!app.vault.getAbstractFileByPath('SidecarDuplicateTest/report 1.html'),
+          hasCopiedMember: !!app.vault.getAbstractFileByPath('SidecarDuplicateTest/report-styles 1.css'),
+          hasOriginalMain: !!app.vault.getAbstractFileByPath('SidecarDuplicateTest/report.html')
+        };
+      },
+      input: { PLUGIN_ID },
+      vaultPath
+    });
+
+    // The whole bundle came across — the binary main, its member, and the note declaring them.
+    expect(result.hasCopiedMain).toBe(true);
+    expect(result.hasCopiedMember).toBe(true);
+    expect(result.hasOriginalMain).toBe(true);
+
+    // And the copy's declaration names its own main and its own member, not the originals.
+    expect(result.declaration).toContain('./report 1.html');
+    expect(result.declaration).toContain('./report-styles 1.css');
   });
 });

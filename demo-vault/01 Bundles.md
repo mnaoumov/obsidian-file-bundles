@@ -19,7 +19,9 @@ The hiding is display only. The dependents stay in the vault index and stay reso
 
 ## See what travels with a file
 
-Open either main file and run the command below. It reports the bundle the active file belongs to, whether the file is a main or one of its dependents.
+Open `Trip note.md` and run the command below. It reports the bundle the active file belongs to, whether that file is a main file, the note declaring one, or one of the dependents.
+
+For the report bundle, open the sidecar `Report/report.html.md` rather than `report.html` — Obsidian cannot open an HTML file, so the sidecar is the only half of that pair you can stand on. Every command works from it, and reports the bundle it declares.
 
 ```code-button
 ---

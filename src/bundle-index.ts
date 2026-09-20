@@ -128,6 +128,29 @@ export class BundleIndex {
   }
 
   /**
+   * Answers the bundles a path is one of the OWN files of — the ones it is the main file of, plus the one it
+   * declares on another file's behalf.
+   *
+   * This is {@link getPaths}' `ownPaths` seen from the other side, and it is the lookup a command wants. The
+   * sidecar of a binary-main bundle is the only file of the pair the user can open in Obsidian, so a lookup
+   * reading the main file alone answers nothing for exactly the file a command is most likely to be invoked
+   * on. The declaring note is deliberately NOT indexed as a member instead: the member map is what the delete
+   * rule's "a file two bundles declare survives either" test reads, and a sidecar is not a shared dependent.
+   *
+   * @param path - The path to look up.
+   * @returns The declarations, empty when the path is neither a main file nor a declaring note.
+   */
+  public getDeclarationsOfOwnPath(path: string): BundleDeclaration[] {
+    const declaringPaths = new Set<string>(this.declaringPathsByMainPath.get(path));
+
+    if (this.declarationsByDeclaringPath.has(path)) {
+      declaringPaths.add(path);
+    }
+
+    return this.toDeclarations(declaringPaths);
+  }
+
+  /**
    * Answers every path one bundle covers.
    *
    * @param declaration - The declaration.

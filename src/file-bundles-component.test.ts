@@ -404,6 +404,71 @@ describe('FileBundlesComponent', () => {
     });
   });
 
+  /*
+   * The sidecar shape, and the one the user is most likely to be standing on: a binary main cannot be opened
+   * in Obsidian at all, so the note declaring it is the only file of the pair a command can be invoked from.
+   * Every command read the main-file map alone and answered "no bundle declared" for exactly that file.
+   */
+  describe('a bundle declared by a sidecar note', () => {
+    const MAIN_PATH = 'Alpha/report.html';
+    const SIDECAR_PATH = 'Alpha/report.html.md';
+
+    beforeEach(async () => {
+      app.vault.createSync__(MAIN_PATH, 'report');
+      await activate(SIDECAR_PATH);
+      declare({ declaringPath: SIDECAR_PATH, mainPath: MAIN_PATH });
+    });
+
+    /*
+     * Not the "carries" wording the main file gets: the sidecar is a bundle's own file but is not its main,
+     * and saying it carries the dependents would present it as one.
+     */
+    it('should name the main file the sidecar declares', () => {
+      createComponent();
+
+      invokeCommand('show-bundle');
+      expect(showNoticeMock)
+        .toHaveBeenCalledWith('File Bundles: Alpha/report.html.md declares the bundle of Alpha/report.html');
+    });
+
+    it('should lock and unlock the bundle from the sidecar', async () => {
+      createComponent();
+
+      invokeCommand('toggle-lock');
+      await sleep({ milliseconds: SETTLE_DELAY_IN_MS });
+
+      expect(settings.unlockedBundleMainPaths).toEqual([MAIN_PATH]);
+      expect(showNoticeMock).toHaveBeenCalledWith('File Bundles: unlocked the bundle of Alpha/report.html');
+    });
+
+    it('should delete the bundle from the sidecar', async () => {
+      createComponent();
+
+      invokeCommand('delete-bundle');
+      await sleep({ milliseconds: SETTLE_DELAY_IN_MS });
+
+      expect(showNoticeMock).toHaveBeenCalledWith('File Bundles: deleted the bundle of Alpha/report.html');
+    });
+
+    it('should duplicate the bundle from the sidecar', async () => {
+      createComponent();
+
+      invokeCommand('duplicate-bundle');
+      await sleep({ milliseconds: SETTLE_DELAY_IN_MS });
+
+      expect(app.vault.getFileByPath('Alpha/report 1.html')).not.toBeNull();
+      expect(app.vault.getFileByPath('Alpha/report 1.html.md')).not.toBeNull();
+      expect(showNoticeMock)
+        .toHaveBeenCalledWith('File Bundles: duplicated the bundle of Alpha/report.html as Alpha/report 1.html');
+    });
+
+    it('should offer the menu items on the sidecar row', () => {
+      createComponent();
+
+      expect(openFileMenu(SIDECAR_PATH).map((item) => item.title)).toEqual(['Unlock bundle', 'Delete bundle']);
+    });
+  });
+
   describe('the File Explorer menu', () => {
     it('should offer unlocking and deleting on a bundle row', () => {
       declare({ declaringPath: 'Alpha/alpha.md' });

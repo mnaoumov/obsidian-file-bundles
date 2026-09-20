@@ -225,7 +225,7 @@ export class FileBundlesComponent extends ComponentEx {
 
   private findBundleOf(path: string): BundleDeclaration | null {
     const index = this.bundleIndexComponent.getIndex();
-    return index.getDeclarationsOfMain(path)[0] ?? index.getDeclarationsOfMember(path)[0] ?? null;
+    return index.getDeclarationsOfOwnPath(path)[0] ?? index.getDeclarationsOfMember(path)[0] ?? null;
   }
 
   private findBundleOfActiveFile(): BundleDeclaration | null {
@@ -264,6 +264,18 @@ export class FileBundlesComponent extends ComponentEx {
       ];
       const description = memberPaths.length === 0 ? 'a bundle with no dependents' : memberPaths.join(', ');
       this.pluginNoticeComponent.showNotice(`File Bundles: ${activeFile.path} carries ${description}`);
+      return;
+    }
+
+    /*
+     * A sidecar note, which is the one file of a binary-main bundle the user can open in Obsidian. It is not
+     * the main file, so it gets its own wording: saying it "carries" the dependents would present it as one.
+     */
+    const ownDeclaration = index.getDeclaration(activeFile.path);
+    if (ownDeclaration) {
+      this.pluginNoticeComponent.showNotice(
+        `File Bundles: ${activeFile.path} declares the bundle of ${ownDeclaration.mainPath}`
+      );
       return;
     }
 

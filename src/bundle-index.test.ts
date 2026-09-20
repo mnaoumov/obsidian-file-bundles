@@ -59,6 +59,7 @@ describe('BundleIndex', () => {
       expect(index.getDeclaration(ALPHA_PATH)).toBeNull();
       expect(index.getDeclarations()).toEqual([]);
       expect(index.getDeclarationsOfMain(ALPHA_PATH)).toEqual([]);
+      expect(index.getDeclarationsOfOwnPath(ALPHA_PATH)).toEqual([]);
       expect(index.getDeclarationsOfMember('Alpha/assets/diagram.png')).toEqual([]);
     });
 
@@ -144,6 +145,65 @@ describe('BundleIndex', () => {
 
       expect(index.getDeclarationsOfMain('Alpha/report.html').map((declaration) => declaration.declaringPath))
         .toEqual(['Alpha/one.md', 'Alpha/two.md']);
+    });
+  });
+
+  describe('a bundle\'s own files', () => {
+    it('should answer once for a note that declares its own bundle inline', () => {
+      index.setDeclaration(createDeclaration({ memberPaths: ['Alpha/assets/diagram.png'] }));
+
+      expect(index.getDeclarationsOfOwnPath(ALPHA_PATH).map((declaration) => declaration.declaringPath))
+        .toEqual([ALPHA_PATH]);
+    });
+
+    /*
+     * The defect this lookup exists for: a sidecar is the one file of a binary-main bundle the user can open
+     * in Obsidian, and a lookup reading `declaringPathsByMainPath` alone answered nothing for it — so every
+     * command reported that the file in front of the user belonged to no bundle at all.
+     */
+    it('should answer for the sidecar note as well as for the binary it names', () => {
+      index.setDeclaration(createDeclaration({
+        declaringPath: 'Alpha/report.html.md',
+        mainPath: 'Alpha/report.html'
+      }));
+
+      expect(index.getDeclarationsOfOwnPath('Alpha/report.html')).toHaveLength(1);
+      expect(index.getDeclarationsOfOwnPath('Alpha/report.html.md')).toHaveLength(1);
+    });
+
+    it('should answer nothing for a dependent, which is not one of the bundle\'s own files', () => {
+      index.setDeclaration(createDeclaration({ memberPaths: ['Alpha/assets/diagram.png'] }));
+
+      expect(index.getDeclarationsOfOwnPath('Alpha/assets/diagram.png')).toEqual([]);
+      expect(index.getDeclarationsOfOwnPath('Alpha/unrelated.png')).toEqual([]);
+    });
+
+    /*
+     * One note can be the main file of another bundle while declaring one of its own. Both are its own
+     * files, and neither may swallow the other.
+     */
+    it('should answer both the bundle a note declares and the one naming it as main', () => {
+      index.setDeclaration(createDeclaration({
+        declaringPath: 'Alpha/report.html.md',
+        mainPath: 'Alpha/report.html'
+      }));
+      index.setDeclaration(createDeclaration({
+        declaringPath: 'Alpha/alpha.md',
+        mainPath: 'Alpha/report.html.md'
+      }));
+
+      expect(index.getDeclarationsOfOwnPath('Alpha/report.html.md').map((declaration) => declaration.declaringPath))
+        .toEqual(['Alpha/alpha.md', 'Alpha/report.html.md']);
+    });
+
+    it('should forget a sidecar declaration when its note goes', () => {
+      index.setDeclaration(createDeclaration({
+        declaringPath: 'Alpha/report.html.md',
+        mainPath: 'Alpha/report.html'
+      }));
+      index.removeDeclaration('Alpha/report.html.md');
+
+      expect(index.getDeclarationsOfOwnPath('Alpha/report.html.md')).toEqual([]);
     });
   });
 

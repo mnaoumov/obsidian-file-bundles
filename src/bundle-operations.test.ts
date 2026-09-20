@@ -13,11 +13,14 @@ import {
   BundleMemberKind
 } from './bundle-declaration.ts';
 import {
+  applyBundleCopies,
   applyBundleMoves,
   planBundleDeletion,
+  planBundleDuplication,
   planBundleMove,
   planBundleRename,
   rewriteBundleDeclaration,
+  toDuplicatedDeclaration,
   toMovedDeclaration,
   trashBundlePaths
 } from './bundle-operations.ts';
@@ -341,6 +344,173 @@ describe('planBundleDeletion', () => {
   });
 });
 
+describe('planBundleDuplication', () => {
+  it('should copy the main file first', () => {
+    const copies = planBundleDuplication({
+      declaration: createDeclaration(),
+      newMainPath: 'Alpha/alpha 1.md'
+    });
+
+    expect(copies).toEqual([{ newPath: 'Alpha/alpha 1.md', oldPath: ALPHA_PATH }]);
+  });
+
+  /*
+   * Mirroring, not renaming: the copy of a dependent keeps its own name and its own position relative to the
+   * main file. Duplicating into the folder the bundle already sits in therefore plans a copy onto the
+   * dependent's own path, and it is the executor — which can see the vault — that picks the free name.
+   */
+  it('should mirror a relative member where it sat relative to the main file', () => {
+    const copies = planBundleDuplication({
+      declaration: createDeclaration({ relativePaths: ['Alpha/assets/diagram.png'] }),
+      newMainPath: 'Beta/alpha.md'
+    });
+
+    expect(copies).toEqual([
+      { newPath: 'Beta/alpha.md', oldPath: ALPHA_PATH },
+      { newPath: 'Beta/assets/diagram.png', oldPath: 'Alpha/assets/diagram.png' }
+    ]);
+  });
+
+  /*
+   * A rooted member names a home of its own, so the duplicate points at the same shared file rather than
+   * growing a second copy of it.
+   */
+  it('should not copy a rooted member', () => {
+    const copies = planBundleDuplication({
+      declaration: createDeclaration({ rootedPaths: ['Shared/logo.png'] }),
+      newMainPath: 'Beta/alpha.md'
+    });
+
+    expect(copies).toEqual([{ newPath: 'Beta/alpha.md', oldPath: ALPHA_PATH }]);
+  });
+
+  it('should copy a folder member whole and leave the files inside it to that copy', () => {
+    const copies = planBundleDuplication({
+      declaration: createDeclaration({
+        folderPaths: ['Alpha/assets'],
+        relativePaths: ['Alpha/assets/diagram.png']
+      }),
+      newMainPath: 'Beta/alpha.md'
+    });
+
+    expect(copies).toEqual([
+      { newPath: 'Beta/alpha.md', oldPath: ALPHA_PATH },
+      { newPath: 'Beta/assets', oldPath: 'Alpha/assets' }
+    ]);
+  });
+
+  it('should leave a relative member that never sat under the main file', () => {
+    const copies = planBundleDuplication({
+      declaration: createDeclaration({ relativePaths: ['Elsewhere/diagram.png'] }),
+      newMainPath: 'Beta/alpha.md'
+    });
+
+    expect(copies).toEqual([{ newPath: 'Beta/alpha.md', oldPath: ALPHA_PATH }]);
+  });
+
+  /*
+   * Without this copy the duplicate would have no declaration at all, and the name follows the copy for the
+   * same reason a rename takes it along: a sidecar naming the wrong file is worse than no convention.
+   */
+  it('should take the sidecar note along, named after the copy', () => {
+    const copies = planBundleDuplication({
+      declaration: createDeclaration({
+        declaringPath: 'Alpha/report.html.md',
+        mainPath: 'Alpha/report.html',
+        relativePaths: ['Alpha/report-styles.css']
+      }),
+      newMainPath: 'Alpha/report 1.html'
+    });
+
+    expect(copies).toEqual([
+      { newPath: 'Alpha/report 1.html', oldPath: 'Alpha/report.html' },
+      { newPath: 'Alpha/report 1.html.md', oldPath: 'Alpha/report.html.md' },
+      { newPath: 'Alpha/report-styles.css', oldPath: 'Alpha/report-styles.css' }
+    ]);
+  });
+
+  it('should keep the name of a declaring note that is not named after its main file', () => {
+    const copies = planBundleDuplication({
+      declaration: createDeclaration({
+        declaringPath: 'Alpha/notes.md',
+        mainPath: 'Alpha/report.html'
+      }),
+      newMainPath: 'Beta/report.html'
+    });
+
+    expect(copies).toEqual([
+      { newPath: 'Beta/report.html', oldPath: 'Alpha/report.html' },
+      { newPath: 'Beta/notes.md', oldPath: 'Alpha/notes.md' }
+    ]);
+  });
+
+  it('should leave a declaring note that lives outside the main file folder where it is', () => {
+    const copies = planBundleDuplication({
+      declaration: createDeclaration({
+        declaringPath: 'Sidecars/report.html.md',
+        mainPath: 'Alpha/report.html'
+      }),
+      newMainPath: 'Beta/report.html'
+    });
+
+    expect(copies).toEqual([
+      { newPath: 'Beta/report.html', oldPath: 'Alpha/report.html' },
+      { newPath: 'Sidecars/report.html.md', oldPath: 'Sidecars/report.html.md' }
+    ]);
+  });
+});
+
+describe('toDuplicatedDeclaration', () => {
+  it('should name the copies and leave a rooted member pointing at the shared original', () => {
+    const declaration = toDuplicatedDeclaration({
+      copies: [
+        { newPath: 'Beta/alpha.md', oldPath: ALPHA_PATH },
+        { newPath: 'Beta/assets/diagram.png', oldPath: 'Alpha/assets/diagram.png' }
+      ],
+      declaration: createDeclaration({
+        relativePaths: ['Alpha/assets/diagram.png'],
+        rootedPaths: ['Shared/logo.png']
+      })
+    });
+
+    expect(declaration.declaringPath).toBe('Beta/alpha.md');
+    expect(declaration.mainPath).toBe('Beta/alpha.md');
+    expect(declaration.members.map((member) => member.path)).toEqual(['Beta/assets/diagram.png', 'Shared/logo.png']);
+  });
+
+  it('should carry a member inside a copied folder', () => {
+    const declaration = toDuplicatedDeclaration({
+      copies: [
+        { newPath: 'Beta/alpha.md', oldPath: ALPHA_PATH },
+        { newPath: 'Beta/assets', oldPath: 'Alpha/assets' }
+      ],
+      declaration: createDeclaration({
+        folderPaths: ['Alpha/assets'],
+        relativePaths: ['Alpha/assets/nested/deep.png']
+      })
+    });
+
+    expect(declaration.members.map((member) => member.path))
+      .toEqual(['Beta/assets/nested/deep.png', 'Beta/assets']);
+  });
+
+  it('should name the copy of the sidecar note and the copy of its main file', () => {
+    const declaration = toDuplicatedDeclaration({
+      copies: [
+        { newPath: 'Alpha/report 1.html', oldPath: 'Alpha/report.html' },
+        { newPath: 'Alpha/report 1.html.md', oldPath: 'Alpha/report.html.md' }
+      ],
+      declaration: createDeclaration({
+        declaringPath: 'Alpha/report.html.md',
+        mainPath: 'Alpha/report.html'
+      })
+    });
+
+    expect(declaration.declaringPath).toBe('Alpha/report 1.html.md');
+    expect(declaration.mainPath).toBe('Alpha/report 1.html');
+  });
+});
+
 describe('toMovedDeclaration', () => {
   it('should bring the moved file and its members up to date', () => {
     const declaration = toMovedDeclaration({
@@ -412,6 +582,48 @@ describe('the vault operations', () => {
     }
     app.vault.createSync__(path, content);
   }
+
+  describe('applyBundleCopies', () => {
+    it('should copy every planned path and leave the originals alone', async () => {
+      createFile('Alpha/assets/diagram.png', 'diagram');
+      app.vault.createFolderSync__('Beta');
+
+      const appliedCopies = await applyBundleCopies({
+        app: app.asOriginalType__(),
+        copies: [{ newPath: 'Beta/assets/diagram.png', oldPath: 'Alpha/assets/diagram.png' }]
+      });
+
+      expect(appliedCopies).toEqual([{ newPath: 'Beta/assets/diagram.png', oldPath: 'Alpha/assets/diagram.png' }]);
+      expect(readFile('Beta/assets/diagram.png')).toBe('diagram');
+      expect(app.vault.getFileByPath('Alpha/assets/diagram.png')).not.toBeNull();
+    });
+
+    /*
+     * The case a bundle duplicated into its own folder plans for every dependent — and the reason each
+     * destination is resolved before the copy is made: the library copies NOTHING when the destination is
+     * the source's own path, so without this the duplicate would silently share the original's dependents.
+     */
+    it('should take an available path when the planned one is the source itself', async () => {
+      createFile('Alpha/diagram.png', 'diagram');
+
+      const appliedCopies = await applyBundleCopies({
+        app: app.asOriginalType__(),
+        copies: [{ newPath: 'Alpha/diagram.png', oldPath: 'Alpha/diagram.png' }]
+      });
+
+      expect(appliedCopies).toEqual([{ newPath: 'Alpha/diagram 1.png', oldPath: 'Alpha/diagram.png' }]);
+      expect(readFile('Alpha/diagram 1.png')).toBe('diagram');
+    });
+
+    it('should do nothing at all for an empty plan', async () => {
+      createFile('Alpha/diagram.png');
+
+      const appliedCopies = await applyBundleCopies({ app: app.asOriginalType__(), copies: [] });
+
+      expect(appliedCopies).toEqual([]);
+      expect(app.vault.getFileByPath('Alpha/diagram 1.png')).toBeNull();
+    });
+  });
 
   describe('applyBundleMoves', () => {
     it('should perform every planned move', async () => {

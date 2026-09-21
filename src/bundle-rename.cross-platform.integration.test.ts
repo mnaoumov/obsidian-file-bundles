@@ -1,4 +1,25 @@
-import { evalInObsidian } from 'obsidian-integration-testing';
+/**
+ * @file
+ *
+ * Renaming a bundle's main file leaves its dependents named as they are, unless the bundle opts in.
+ *
+ * The waiting happens in NODE, and that is not a style choice. One `evalInObsidian` closure is capped at
+ * ~30s by the transport, and the operations themselves spend most of that budget on Android: four vault
+ * creations, two real renames and the plugin's transactional propagation. A single closure that declared
+ * even modest ceilings inside itself therefore died at the cap as `EvalCapExceededError`, naming the
+ * harness rather than the step that overran — measured 31.1s on the Android leg, 2026-09-20. Each wait is
+ * now a `pollInObsidian` whose `poll` reads the vault and returns at once, and each settle is a Node-side
+ * `sleepInNode`, a settle being wall-clock time either way.
+ */
+
+// Imported under a different name on purpose: a module-scope `sleep` shadows the Obsidian runtime global
+// that a serialized closure would otherwise reach for, and the failure is an opaque `ReferenceError` from
+// inside the closure rather than anything naming this import.
+import { setTimeout as sleepInNode } from 'node:timers/promises';
+import {
+  evalInObsidian,
+  pollInObsidian
+} from 'obsidian-integration-testing';
 import { getTemporaryVault } from 'obsidian-integration-testing/vitest-global-setup-plugin';
 import {
   describe,
@@ -29,20 +50,44 @@ const FOLLOWING_CONTENT = [
   ''
 ].join('\n');
 
-describe('Renaming a bundle', () => {
-  it('should leave dependents named as they are, unless the bundle asks for them to follow', async () => {
-    const result = await evalInObsidian({
-      async callback({ app, FOLLOWING_CONTENT: followingContent, KEEPING_CONTENT: keepingContent, lib }) {
-        const SETTLE_DELAY_IN_MS = 2000;
+const SETTLE_DELAY_IN_MS = 2000;
+const TEST_TIMEOUT_IN_MS = 120_000;
 
+/*
+ * A NODE-side budget, so the transport's per-eval cap does not bound it: what it covers is a series of
+ * short polls rather than one long closure. Generous on purpose — the emulator is the slow end, and what
+ * is waited on here lands in well under a second on a desktop.
+ */
+const WAIT_TIMEOUT_IN_MS = 30_000;
+
+describe('Renaming a bundle', () => {
+  it('should leave dependents named as they are, unless the bundle asks for them to follow', { timeout: TEST_TIMEOUT_IN_MS }, async () => {
+    const vaultPath = getTemporaryVault().path;
+
+    /*
+     * BOTH declarations, not just one: a bundle whose declaration has not been parsed yet is not a bundle
+     * at all, so renaming its main file would prove nothing about the opt-in.
+     */
+    await pollInObsidian({
+      input: {
+        FOLLOWING_CONTENT,
+        KEEPING_CONTENT
+      },
+      poll({ app }): boolean {
+        return ['RenameTestKeeping/keeping.md', 'RenameTestFollowing/following.md'].every((path) => {
+          const file = app.vault.getFileByPath(path);
+          return !!file && !!app.metadataCache.getFileCache(file)?.frontmatter;
+        });
+      },
+      async start({ app, FOLLOWING_CONTENT: followingContent, KEEPING_CONTENT: keepingContent }): Promise<void> {
         /*
-         * Under the transport's ~30s per-closure cap, not at it.
-         * Two waits and two settles share this one budget, so at 20_000 apiece the closure declared 44s.
-         * The eval is killed at the cap first and reported as a bare transport timeout.
-         * That names the harness rather than the wait that overran.
-         * What is waited on here lands in well under a second, so the smaller ceiling costs nothing.
+         * Renaming a note whose frontmatter links its own dependents otherwise raises Obsidian's "Update
+         * links — do you want to update internal links that link to this file?" sheet, and the rename SITS
+         * THERE waiting for an answer, so `renameFile` never resolves and the eval is killed at the
+         * transport's cap. The desktop harness writes this into `app.json` before it starts; on Android the
+         * setting does not survive to the running app, so the suite sets it itself.
          */
-        const WAIT_TIMEOUT_IN_MS = 10_000;
+        app.vault.setConfig('alwaysUpdateLinks', true);
 
         async function ensureFolder(path: string): Promise<void> {
           try {
@@ -64,51 +109,58 @@ describe('Renaming a bundle', () => {
           }
         }
 
-        async function rename(oldPath: string, newPath: string): Promise<void> {
-          const abstractFile = app.vault.getAbstractFileByPath(oldPath);
-          if (abstractFile) {
-            await app.fileManager.renameFile(abstractFile, newPath);
-          }
-        }
-
         await create('RenameTestKeeping/keeping.png', 'keeping');
         await create('RenameTestKeeping/keeping.md', keepingContent);
         await create('RenameTestFollowing/following.png', 'following');
         await create('RenameTestFollowing/following.md', followingContent);
+      },
+      timeoutInMilliseconds: WAIT_TIMEOUT_IN_MS,
+      timeoutMessage: 'both declarations never reached the metadata cache',
+      until: (areBothParsed: boolean): boolean => areBothParsed,
+      vaultPath
+    });
 
-        await lib.waitUntil({
-          message: 'both declarations to be parsed',
-          predicate: () => {
-            const keeping = app.vault.getFileByPath('RenameTestKeeping/keeping.md');
-            const following = app.vault.getFileByPath('RenameTestFollowing/following.md');
-            return !!keeping && !!following
-              && !!app.metadataCache.getFileCache(keeping)?.frontmatter
-              && !!app.metadataCache.getFileCache(following)?.frontmatter;
-          },
-          timeoutInMilliseconds: WAIT_TIMEOUT_IN_MS
-        });
-        await sleep(SETTLE_DELAY_IN_MS);
+    await sleepInNode(SETTLE_DELAY_IN_MS);
+
+    /*
+     * Both mains renamed in the one `start`, so the two bundles see the same operation and the only thing
+     * that differs between them is the `renameDependents` opt-in. The opted-in dependent arriving under its
+     * new name is the signal; the other bundle's dependent is asserted below, a negative nothing can wait
+     * for.
+     */
+    await pollInObsidian({
+      poll({ app }): boolean {
+        return !!app.vault.getAbstractFileByPath('RenameTestFollowing/renamed.png');
+      },
+      async start({ app }): Promise<void> {
+        async function rename(oldPath: string, newPath: string): Promise<void> {
+          const abstractFile = app.vault.getAbstractFileByPath(oldPath);
+          if (!abstractFile) {
+            throw new Error(`The staged main file is missing: ${oldPath}`);
+          }
+
+          await app.fileManager.renameFile(abstractFile, newPath);
+        }
 
         await rename('RenameTestKeeping/keeping.md', 'RenameTestKeeping/renamed.md');
         await rename('RenameTestFollowing/following.md', 'RenameTestFollowing/renamed.md');
+      },
+      timeoutInMilliseconds: WAIT_TIMEOUT_IN_MS,
+      timeoutMessage: 'the dependent of the opted-in bundle never followed the new name',
+      until: (hasDependentFollowed: boolean): boolean => hasDependentFollowed,
+      vaultPath
+    });
 
-        await lib.waitUntil({
-          message: 'the dependent of the opted-in bundle to follow the new name',
-          predicate: () => !!app.vault.getAbstractFileByPath('RenameTestFollowing/renamed.png'),
-          timeoutInMilliseconds: WAIT_TIMEOUT_IN_MS
-        });
-        await sleep(SETTLE_DELAY_IN_MS);
+    await sleepInNode(SETTLE_DELAY_IN_MS);
 
+    const result = await evalInObsidian({
+      callback({ app }) {
         return {
           keepingDependentKeptItsName: !!app.vault.getAbstractFileByPath('RenameTestKeeping/keeping.png'),
           renamedDependentFollowed: !!app.vault.getAbstractFileByPath('RenameTestFollowing/renamed.png')
         };
       },
-      input: {
-        FOLLOWING_CONTENT,
-        KEEPING_CONTENT
-      },
-      vaultPath: getTemporaryVault().path
+      vaultPath
     });
 
     /*

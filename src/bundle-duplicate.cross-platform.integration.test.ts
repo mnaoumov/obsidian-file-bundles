@@ -241,9 +241,24 @@ describe('Duplicating a bundle', () => {
 
         app.commands.executeCommandById(`${pluginId}:duplicate-bundle`);
 
+        /*
+         * On the copied sidecar's CONTENT, never on the file appearing. The copy arrives carrying a
+         * verbatim copy of the ORIGINAL's declaration, and the rewrite that points it at its own main is a
+         * separate, later write — so a read taken the moment the file exists lands between the two and sees
+         * the original's names. The rewrite is the operation's LAST write, after every copy has been made,
+         * which is why this one signal also settles `hasCopiedMain` and `hasCopiedMember`.
+         */
         await lib.waitUntil({
-          message: 'the duplicated sidecar to arrive',
-          predicate: () => !!app.vault.getFileByPath('SidecarDuplicateTest/report 1.html.md'),
+          message: 'the copied sidecar to declare its own main and member',
+          predicate: async () => {
+            const copy = app.vault.getFileByPath('SidecarDuplicateTest/report 1.html.md');
+            if (!copy) {
+              return false;
+            }
+
+            const content = await app.vault.read(copy);
+            return content.includes('report 1.html') && content.includes('report-styles 1.css');
+          },
           timeoutInMilliseconds: WAIT_TIMEOUT_IN_MS
         });
 

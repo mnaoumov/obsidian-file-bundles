@@ -18,7 +18,7 @@ file-bundles:
 
 ## A file that cannot carry frontmatter gets a sidecar
 
-`Materials/01 Bundles/Report/report.html.md` declares the bundle for the HTML file beside it, naming it as `main`:
+`Materials/01 Bundles/Report/Quarterly report.md` declares the bundle for the HTML file beside it, naming it as `main`:
 
 ```yaml
 ---

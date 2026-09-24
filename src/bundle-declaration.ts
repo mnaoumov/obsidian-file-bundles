@@ -46,6 +46,19 @@ export enum BundleDeclarationProblemReason {
   EntryIsNotAString = 'EntryIsNotAString',
 
   /**
+   * The entry climbed past the vault root, so it names a path the vault does not contain — `/../shared`, or
+   * a `../..` from a note one folder deep.
+   */
+  EntryIsOutsideTheVault = 'EntryIsOutsideTheVault',
+
+  /**
+   * The entry resolved to the vault root itself — written `/`, or `./` from a note at the top of the vault.
+   * A bundle is a file plus what travels with it, so the whole vault is never one of its members, and an
+   * entry that names it is rejected rather than carried into an operation that would act on every file.
+   */
+  EntryIsTheVaultRoot = 'EntryIsTheVaultRoot',
+
+  /**
    * A `folders` entry was a link, but the note it names is not the folder note of any folder. Resolving one
    * never creates it, so a folder without a folder note simply cannot be named this way.
    */
@@ -245,10 +258,12 @@ export interface ParseBundleDeclarationResult {
 const FILES_KEY = 'files';
 const FOLDERS_KEY = 'folders';
 const MAIN_KEY = 'main';
+const PARENT_FOLDER_PATH = '..';
 const PARENT_PREFIX = '../';
 const RELATIVE_PREFIX = './';
 const RENAME_DEPENDENTS_KEY = 'renameDependents';
 const ROOTED_PREFIX = '/';
+const TRAILING_SLASHES_REG_EXP = /\/+$/;
 const VAULT_ROOT_FOLDER_PATH = '.';
 
 interface CollectMembersParams {
@@ -504,6 +519,53 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
 
+/**
+ * Canonicalizes a resolved entry path, and rejects the two forms that name nothing a bundle can hold.
+ *
+ * Both exist because `normalizePath()` leaves a folder path exactly as written: it keeps a trailing slash,
+ * so `/Shared/brand/` stays `Shared/brand/` and names no folder the vault has; and it answers `.` for an
+ * empty remainder and `..` for a climb past the top, so `/` reaches the rest of the plugin as the VAULT
+ * ROOT and `../..` as a path outside the vault altogether. Neither is caught anywhere downstream — the
+ * index would hold the root as an ordinary member and a deletion would hand it straight to the trash.
+ *
+ * So the canonical form is settled here, once, for every key: a trailing slash is not part of a path, an
+ * empty path is the root, and the root and anything above it are reported like any other malformed entry.
+ *
+ * @param params - The parameters of the entry being resolved, for the problem report.
+ * @param path - The resolved path, as the path math left it.
+ * @returns The canonical path, or `null` when the entry was rejected.
+ */
+function normalizeResolvedPath(params: ResolveEntryParams, path: string): null | string {
+  const {
+    entry,
+    key,
+    problems
+  } = params;
+
+  const trimmedPath = path.replace(TRAILING_SLASHES_REG_EXP, '');
+  const normalizedPath = trimmedPath === '' ? VAULT_ROOT_FOLDER_PATH : trimmedPath;
+
+  if (normalizedPath === VAULT_ROOT_FOLDER_PATH) {
+    problems.push({
+      entry,
+      key,
+      reason: BundleDeclarationProblemReason.EntryIsTheVaultRoot
+    });
+    return null;
+  }
+
+  if (normalizedPath === PARENT_FOLDER_PATH || normalizedPath.startsWith(PARENT_PREFIX)) {
+    problems.push({
+      entry,
+      key,
+      reason: BundleDeclarationProblemReason.EntryIsOutsideTheVault
+    });
+    return null;
+  }
+
+  return normalizedPath;
+}
+
 function resolveFolderNoteEntry(params: ResolveEntryParams): null | ResolvedEntry {
   const {
     app,
@@ -600,7 +662,13 @@ function resolveLinkEntry(params: ResolveEntryParams): null | ResolvedEntry {
   // A bare path carries no syntax, so it is written back as a wikilink — the form Obsidian's cache indexes.
   const isWikilink = parseLinkResult?.isWikilink ?? true;
   const resolvedFile = app.metadataCache.getFirstLinkpathDest(linkPath, declaringPath);
-  const path = resolvedFile?.path ?? resolvePathAgainst(declaringPath, linkPath);
+  const path = normalizeResolvedPath(params, resolvedFile?.path ?? resolvePathAgainst(declaringPath, linkPath));
+
+  // Asked BEFORE the prefix check, because naming the vault root is fatal and a missing prefix is not: an
+  // entry that does both — a bare `..` — has to be rejected rather than resolved with a problem attached.
+  if (path === null) {
+    return null;
+  }
 
   if (!isRelative && !isRooted) {
     problems.push({
@@ -679,20 +747,30 @@ function resolvePathEntry(params: ResolveEntryParams): null | ResolvedEntry {
   } = params;
 
   if (entry.startsWith(RELATIVE_PREFIX) || entry.startsWith(PARENT_PREFIX)) {
+    const path = normalizeResolvedPath(params, resolvePathAgainst(declaringPath, entry));
+    if (path === null) {
+      return null;
+    }
+
     return {
       anchoring: BundleMemberAnchoring.Relative,
       isAnchorPrefixMissing: false,
       isWikilink: false,
-      path: resolvePathAgainst(declaringPath, entry)
+      path
     };
   }
 
   if (entry.startsWith(ROOTED_PREFIX)) {
+    const path = normalizeResolvedPath(params, normalizePath(entry.slice(ROOTED_PREFIX.length)));
+    if (path === null) {
+      return null;
+    }
+
     return {
       anchoring: BundleMemberAnchoring.Rooted,
       isAnchorPrefixMissing: false,
       isWikilink: false,
-      path: normalizePath(entry.slice(ROOTED_PREFIX.length))
+      path
     };
   }
 

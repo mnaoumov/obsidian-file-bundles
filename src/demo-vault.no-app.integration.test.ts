@@ -15,7 +15,7 @@ registerDemoVaultCoverageSuite({
     excludedNotes: [
       'README.md',
       'Materials/01 Bundles/Trip note.md',
-      'Materials/01 Bundles/Report/report.html.md'
+      'Materials/01 Bundles/Report/Quarterly report.md'
     ]
   },
   configInterfaces: [{ interfaceName: 'PluginSettings', sourcePath: 'src/plugin-settings.ts' }],

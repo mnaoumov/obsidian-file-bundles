@@ -5,7 +5,7 @@ A **bundle** is a main file plus the files and folders it declares as its own. T
 - `Trip note.md`
   - a markdown main file, declaring `Trip assets/Route.svg` and the `Trip assets` folder in its own frontmatter.
 - `Report/report.html`
-  - an HTML main file, which cannot carry frontmatter — so `report.html.md` sits beside it and declares the bundle on its behalf.
+  - an HTML main file, which cannot carry frontmatter — so `Quarterly report.md` sits beside it and declares the bundle on its behalf. That name is not derived from `report.html` in any way, and nothing needs it to be: the `file-bundles` key inside the note is what marks the declaration.
 
 ## What a bundle does
 
@@ -21,7 +21,7 @@ The hiding is display only. The dependents stay in the vault index and stay reso
 
 Open `Trip note.md` and run the command below. It reports the bundle the active file belongs to, whether that file is a main file, the note declaring one, or one of the dependents.
 
-For the report bundle, open the sidecar `Report/report.html.md` rather than `report.html` — Obsidian cannot open an HTML file, so the sidecar is the only half of that pair you can stand on. Every command works from it, and reports the bundle it declares.
+For the report bundle, open the sidecar `Report/Quarterly report.md` rather than `report.html` — Obsidian cannot open an HTML file, so the sidecar is the only half of that pair you can stand on. Every command works from it, and reports the bundle it declares. Finding it took no naming convention: a sidecar is marked by its `file-bundles` key, so it is free to be called whatever suits the note — and calling it `report.html.md` would have been worse than useless, painting a second row labelled `report` beside the main file with nothing on screen to tell the two apart.
 
 ```code-button
 ---

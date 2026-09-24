@@ -85,6 +85,8 @@ file-bundles:
 
 **Every path is explicitly relative (`./assets`) or explicitly rooted (`/shared/brand`).** A sidecar can live anywhere, so a bare `assets` would be ambiguous between the declaring file and the vault root, and this plugin would rather reject it than guess.
 
+**The vault itself is never a member.** A bundle is a file plus what travels with it, so an entry that names the whole vault — `/`, or `./` written in a note at the top of the vault — is rejected, as is one that climbs above it. Everything else is taken at its word, trailing slash and all: `/shared/brand/` means the folder `shared/brand`.
+
 The two forms mean different things when the main file moves: a relative member is anchored to the main file and travels with it, while a rooted member states a home of its own and stays put. That is what makes a shared logo shareable.
 
 The main file and the note that declares the bundle are always members. You never list them.

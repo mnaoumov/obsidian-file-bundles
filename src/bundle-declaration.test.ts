@@ -109,6 +109,17 @@ describe('parseBundleDeclaration', () => {
       expect(result.problems[0]?.reason).toBe(BundleDeclarationProblemReason.EntryIsExternal);
     });
 
+    it('should fall back to the declaring note when main names the vault root', () => {
+      const result = parse({ main: '/' });
+
+      expect(result.declaration?.mainPath).toBe(DECLARING_PATH);
+      expect(result.problems).toEqual([{
+        entry: '/',
+        key: 'main',
+        reason: BundleDeclarationProblemReason.EntryIsTheVaultRoot
+      }]);
+    });
+
     it('should fall back to the declaring note when main is not a string', () => {
       const result = parse({ main: 42 });
 
@@ -240,6 +251,22 @@ describe('parseBundleDeclaration', () => {
       expect(result.declaration?.members[0]?.anchoring).toBe(BundleMemberAnchoring.Rooted);
       expect(result.declaration?.members[0]?.path).toBe('Shared/logo.png');
     });
+
+    /*
+     * The same root hazard as the `folders` one, reached through the sibling key: `/` goes through the same
+     * path math whichever key it sits under, so rejecting it for folders alone would have left it live one
+     * line over.
+     */
+    it('should reject an entry naming the vault root', () => {
+      const result = parse({ files: ['/'] });
+
+      expect(result.declaration?.members).toEqual([]);
+      expect(result.problems).toEqual([{
+        entry: '/',
+        key: 'files.0',
+        reason: BundleDeclarationProblemReason.EntryIsTheVaultRoot
+      }]);
+    });
   });
 
   describe('a link without the mandatory prefix', () => {
@@ -285,6 +312,22 @@ describe('parseBundleDeclaration', () => {
       const result = parse({ files: ['[[logo.png]]'] }, 'main.md');
 
       expect(result.declaration?.members[0]?.anchoring).toBe(BundleMemberAnchoring.Relative);
+    });
+
+    /*
+     * A bare `..` is missing its prefix AND names the vault root. Only the fatal problem is reported: the
+     * missing-prefix branch answers with a member the caller may re-anchor, and there is nothing here worth
+     * re-anchoring to.
+     */
+    it('should report a bare .. as the vault root rather than as a missing prefix', () => {
+      const result = parse({ files: ['..'] });
+
+      expect(result.declaration?.members).toEqual([]);
+      expect(result.problems).toEqual([{
+        entry: '..',
+        key: 'files.0',
+        reason: BundleDeclarationProblemReason.EntryIsTheVaultRoot
+      }]);
     });
   });
 
@@ -342,6 +385,103 @@ describe('parseBundleDeclaration', () => {
         entry: 'assets',
         key: 'folders.0',
         reason: BundleDeclarationProblemReason.MissingAnchorPrefix
+      }]);
+    });
+
+    /*
+     * A trailing slash is how a person writes a folder and is not part of its path. Left on, the member
+     * named no folder the vault has and the whole entry was silently inert — the near miss that shares its
+     * cause with the vault-root entries below.
+     */
+    it('should drop a trailing slash from a rooted path', () => {
+      const result = parse({ folders: ['/Shared/brand/'] });
+
+      expect(result.declaration?.members[0]?.path).toBe('Shared/brand');
+      expect(result.problems).toEqual([]);
+    });
+
+    it('should read a lone ./ as the declaring note own folder', () => {
+      const result = parse({ folders: ['./'] });
+
+      expect(result.declaration?.members).toEqual<BundleMember[]>([{
+        anchoring: BundleMemberAnchoring.Relative,
+        isAnchorPrefixMissing: false,
+        isWikilink: false,
+        kind: BundleMemberKind.Folder,
+        path: 'Alpha'
+      }]);
+    });
+
+    it('should read a lone ../ as the folder above the declaring note', () => {
+      const result = parse({ folders: ['../'] }, 'Alpha/Beta/main.md');
+
+      expect(result.declaration?.members[0]?.path).toBe('Alpha');
+      expect(result.problems).toEqual([]);
+    });
+
+    /*
+     * The entry that made this rule necessary. `/` resolved to `.`, which is the vault root, and every
+     * layer below took it for an ordinary folder member: the index held it, and a deletion would have
+     * handed the whole vault to the trash. Rejecting it here is what stops anything downstream having to
+     * defend against it.
+     */
+    it('should reject a rooted path naming the vault root', () => {
+      const result = parse({ folders: ['/'] });
+
+      expect(result.declaration?.members).toEqual([]);
+      expect(result.problems).toEqual([{
+        entry: '/',
+        key: 'folders.0',
+        reason: BundleDeclarationProblemReason.EntryIsTheVaultRoot
+      }]);
+    });
+
+    /*
+     * `//` is the one entry whose path math leaves NOTHING rather than `.`: `normalizePath` answers `/`,
+     * and trimming the trailing slash empties it. An empty path is the root, which is why the canonical
+     * form is settled before the root is looked for and not after.
+     */
+    it('should reject a rooted path that empties to nothing', () => {
+      const result = parse({ folders: ['//'] });
+
+      expect(result.declaration?.members).toEqual([]);
+      expect(result.problems).toEqual([{
+        entry: '//',
+        key: 'folders.0',
+        reason: BundleDeclarationProblemReason.EntryIsTheVaultRoot
+      }]);
+    });
+
+    it('should reject a lone ./ declared by a note at the top of the vault, which is the same root', () => {
+      const result = parse({ folders: ['./'] }, 'main.md');
+
+      expect(result.declaration?.members).toEqual([]);
+      expect(result.problems).toEqual([{
+        entry: './',
+        key: 'folders.0',
+        reason: BundleDeclarationProblemReason.EntryIsTheVaultRoot
+      }]);
+    });
+
+    it('should reject a path that climbs past the vault root', () => {
+      const result = parse({ folders: ['../..'] });
+
+      expect(result.declaration?.members).toEqual([]);
+      expect(result.problems).toEqual([{
+        entry: '../..',
+        key: 'folders.0',
+        reason: BundleDeclarationProblemReason.EntryIsOutsideTheVault
+      }]);
+    });
+
+    it('should reject a rooted path that climbs past the vault root', () => {
+      const result = parse({ folders: ['/../Shared'] });
+
+      expect(result.declaration?.members).toEqual([]);
+      expect(result.problems).toEqual([{
+        entry: '/../Shared',
+        key: 'folders.0',
+        reason: BundleDeclarationProblemReason.EntryIsOutsideTheVault
       }]);
     });
 

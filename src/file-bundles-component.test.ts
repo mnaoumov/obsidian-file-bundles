@@ -14,7 +14,11 @@ import type {
 import { sleep } from 'obsidian-dev-utils/async';
 import { castTo } from 'obsidian-dev-utils/object-utils';
 import { strictProxy } from 'obsidian-dev-utils/strict-proxy';
-import { App } from 'obsidian-test-mocks/obsidian';
+import {
+  App,
+  FileView,
+  WorkspaceLeaf
+} from 'obsidian-test-mocks/obsidian';
 import {
   beforeEach,
   describe,
@@ -35,12 +39,28 @@ import { BundleIndex } from './bundle-index.ts';
 import { FileBundlesComponent } from './file-bundles-component.ts';
 import { PluginSettings } from './plugin-settings.ts';
 
+const IMAGE_EXTENSIONS = ['jpg', 'png'];
+const IMAGE_VIEW_TYPE = 'image';
 const SETTLE_DELAY_IN_MS = 20;
 
 interface MenuItemStub {
   icon: string;
   onClick: (this: void) => void;
   title: string;
+}
+
+/*
+ * Obsidian registers an image view for these extensions up front; the mock registers only the Markdown view, so a
+ * `.png` would otherwise open into an empty leaf and `getActiveFile()` would answer `null`.
+ */
+class ImageView extends FileView {
+  public override canAcceptExtension(extension: string): boolean {
+    return IMAGE_EXTENSIONS.includes(extension);
+  }
+
+  public override getViewType(): string {
+    return IMAGE_VIEW_TYPE;
+  }
 }
 
 describe('FileBundlesComponent', () => {
@@ -54,6 +74,11 @@ describe('FileBundlesComponent', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     app = App.createConfigured__();
+    app.viewRegistry.registerViewWithExtensions(
+      IMAGE_EXTENSIONS,
+      IMAGE_VIEW_TYPE,
+      (leaf) => new ImageView(WorkspaceLeaf.fromOriginalType3__(leaf)).asOriginalType4__()
+    );
     commands = [];
     fileMenuHandlers = [];
     index = new BundleIndex();

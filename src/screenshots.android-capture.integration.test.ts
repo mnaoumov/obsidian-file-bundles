@@ -320,15 +320,6 @@ beforeAll(async () => {
       // file of the sidecar bundle — is simply not there, and half the story cannot be told. The desktop
       // app lists it either way. The demo vault turns this on for the same reason.
       app.vault.setConfig('showUnsupportedFiles', true);
-
-      // Without this, moving a note whose frontmatter links its own dependents raises Obsidian's
-      // "Update links — do you want to update internal links that link to this file?" sheet, and the
-      // rename SITS THERE waiting for an answer. From outside that reads as the plugin declining to move
-      // the bundle: the main file lands in its new folder, the members never follow, and the next frame
-      // is photographed with the sheet across the bottom half of it. The desktop harness writes this into
-      // `app.json` before it starts ("headless rename support"); the Android one does not, so the suite
-      // sets it itself.
-      app.vault.setConfig('alwaysUpdateLinks', true);
     },
     timeoutInMilliseconds: WAIT_TIMEOUT_IN_MILLISECONDS,
     timeoutMessage: 'both declarations never reached the metadata cache',

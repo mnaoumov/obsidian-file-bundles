@@ -375,7 +375,7 @@ describe('mobile store screenshots', () => {
     // The other bundle is untouched, which is what makes this a per-bundle switch rather than a setting.
     expect(names).not.toContain(REPORT_STYLES_NAME);
 
-    await shoot(2, 'Unlock one bundle and its dependents come back, dimmed');
+    await shoot(2, 'Unlock a bundle and its dependents come back, dimmed');
   }, TEST_TIMEOUT_IN_MILLISECONDS);
 
   it('3 - moving the main file moves the bundle', async () => {

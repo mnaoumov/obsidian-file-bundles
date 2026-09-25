@@ -80,15 +80,6 @@ describe('Renaming a bundle', () => {
         });
       },
       async start({ app, FOLLOWING_CONTENT: followingContent, KEEPING_CONTENT: keepingContent }): Promise<void> {
-        /*
-         * Renaming a note whose frontmatter links its own dependents otherwise raises Obsidian's "Update
-         * links — do you want to update internal links that link to this file?" sheet, and the rename SITS
-         * THERE waiting for an answer, so `renameFile` never resolves and the eval is killed at the
-         * transport's cap. The desktop harness writes this into `app.json` before it starts; on Android the
-         * setting does not survive to the running app, so the suite sets it itself.
-         */
-        app.vault.setConfig('alwaysUpdateLinks', true);
-
         async function ensureFolder(path: string): Promise<void> {
           try {
             await app.vault.createFolder(path);

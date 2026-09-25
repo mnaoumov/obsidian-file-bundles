@@ -178,11 +178,7 @@ export class BundleIndex {
    * @returns Whether the path is a dependent.
    */
   public isDependent(path: string): boolean {
-    if (this.declarationsByDeclaringPath.has(path) || this.declaringPathsByMainPath.has(path)) {
-      return false;
-    }
-
-    return this.getDeclarationsOfMember(path).length > 0;
+    return !this.declarationsByDeclaringPath.has(path) && !this.declaringPathsByMainPath.has(path) && this.getDeclarationsOfMember(path).length > 0;
   }
 
   /**

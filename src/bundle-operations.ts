@@ -361,11 +361,7 @@ export function planBundleDuplication(params: PlanBundleDuplicationParams): Bund
 
   const copiedFolderPaths: string[] = [];
   for (const member of [...declaration.members].sort(byPathDepth)) {
-    if (member.anchoring !== BundleMemberAnchoring.Relative || !isUnder(oldFolderPath, member.path)) {
-      continue;
-    }
-
-    if (copiedFolderPaths.some((folderPath) => isUnder(folderPath, member.path))) {
+    if (member.anchoring !== BundleMemberAnchoring.Relative || !isUnder(oldFolderPath, member.path) || copiedFolderPaths.some((folderPath) => isUnder(folderPath, member.path))) {
       continue;
     }
 
@@ -419,11 +415,7 @@ export function planBundleMove(params: PlanBundleMoveParams): BundleMemberMove[]
 
   const movingFolderPaths: string[] = [];
   for (const member of [...declaration.members].sort(byPathDepth)) {
-    if (member.anchoring !== BundleMemberAnchoring.Relative || !isUnder(oldFolderPath, member.path)) {
-      continue;
-    }
-
-    if (movingFolderPaths.some((folderPath) => isUnder(folderPath, member.path))) {
+    if (member.anchoring !== BundleMemberAnchoring.Relative || !isUnder(oldFolderPath, member.path) || movingFolderPaths.some((folderPath) => isUnder(folderPath, member.path))) {
       continue;
     }
 
@@ -675,11 +667,7 @@ function toDuplicatedDeclaringPath(declaration: BundleDeclaration, newMainPath: 
 
   const oldMainName = basename(declaration.mainPath);
   const declaringName = basename(declaration.declaringPath);
-  if (!declaringName.startsWith(oldMainName)) {
-    return mirroredPath;
-  }
-
-  return join(dirname(mirroredPath), `${basename(newMainPath)}${declaringName.slice(oldMainName.length)}`);
+  return declaringName.startsWith(oldMainName) ? join(dirname(mirroredPath), `${basename(newMainPath)}${declaringName.slice(oldMainName.length)}`) : mirroredPath;
 }
 
 function toEntries(app: App, declaration: BundleDeclaration, kind: BundleMemberKind): string[] {

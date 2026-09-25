@@ -724,11 +724,7 @@ function resolveMainPath(params: ResolveMainPathParams): string {
 }
 
 function resolvePathAgainst(declaringPath: string, linkPath: string): string {
-  if (linkPath.startsWith(ROOTED_PREFIX)) {
-    return normalizePath(linkPath.slice(ROOTED_PREFIX.length));
-  }
-
-  return normalizePath(join(dirname(declaringPath), linkPath));
+  return normalizePath(linkPath.startsWith(ROOTED_PREFIX) ? linkPath.slice(ROOTED_PREFIX.length) : join(dirname(declaringPath), linkPath));
 }
 
 /**

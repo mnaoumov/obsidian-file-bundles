@@ -40,6 +40,7 @@ import process from 'node:process';
 // inside the closure rather than anything naming this import.
 import { setTimeout as sleepInNode } from 'node:timers/promises';
 import {
+  applyObsidianTheme,
   captureObsidianScreenshot,
   evalInObsidian,
   labelScreenshot,
@@ -268,6 +269,11 @@ beforeAll(async () => {
   vault.populate(fixtures);
   await vault.syncToDevice();
 
+  // Not a bare `app.changeTheme('obsidian')`: that only schedules the config save, and a config reload landing
+  // first drops the theme, so a dark run could shoot every frame light. This saves at once, and each capture
+  // then refuses a frame that has left the theme.
+  await applyObsidianTheme({ theme: 'dark' });
+
   await pollInObsidian({
     input: {
       explorerWidthInPixels: EXPLORER_WIDTH_IN_PIXELS,
@@ -287,8 +293,6 @@ beforeAll(async () => {
       });
     },
     async start({ app, explorerWidthInPixels }): Promise<void> {
-      app.changeTheme('obsidian');
-
       // Each staged note opens with its own `# H1`, so the inline title doubles it. The config alone
       // changes nothing on screen — the setting is a class on `document.body`, and only this call applies
       // it. `app.workspace.updateOptions()` does NOT.

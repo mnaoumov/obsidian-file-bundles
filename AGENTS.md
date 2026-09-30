@@ -12,7 +12,7 @@ Idea captured from a Discord exchange with `rakudo` (2026-08-24 to 2026-08-26). 
 
 ## Current state
 
-**Built, not yet released.** The declaration parser, the bundle index, the transactional operations and the display-only File Explorer hiding are all in place, wired together, and covered by unit tests at 100% plus five behavioral integration suites (move, rename, delete, unlock, duplicate). `README.md` and the demo vault describe what the plugin actually does.
+**Released and listed.** 1.0.0 shipped on 2026-09-30 and is live in the community directory at <https://community.obsidian.md/plugins/file-bundles>; its automated review passed with no manifest or README finding. The declaration parser, the bundle index, the transactional operations and the display-only File Explorer hiding are all in place, wired together, and covered by unit tests at 100% plus five behavioral integration suites (move, rename, delete, unlock, duplicate). `README.md` and the demo vault describe what the plugin actually does.
 
 **All four bundle operations are built.** Duplicate was the last of them, and it waited for `obsidian-dev-utils` 104 to give `VaultTransaction` a `copy`: `create()` takes a `string`, so the alternatives were the hand-rolled rollback this plugin's invariants forbid, or a command silently correct for notes and lossy for every attachment. Unlike the other three it reacts to no vault event, because Obsidian raises none for a duplication — it is a command of this plugin's own, and it deliberately does not consult the unlocked list, since nothing happens to the original bundle at all.
 

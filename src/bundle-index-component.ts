@@ -4,9 +4,9 @@ import type {
   TFile
 } from 'obsidian';
 
-import { LayoutReadyComponent } from 'obsidian-dev-utils/obsidian/components/layout-ready-component';
-import { PathSettings } from 'obsidian-dev-utils/obsidian/path-settings';
-import { getMarkdownFilesSorted } from 'obsidian-dev-utils/obsidian/vault';
+import { LayoutReadyComponent } from '@mnaoumov/obsidian-lib/components/layout-ready-component';
+import { PathSettings } from '@mnaoumov/obsidian-lib/path-settings';
+import { getMarkdownFilesSorted } from '@mnaoumov/obsidian-lib/vault';
 
 import type { BundleDeclaration } from './bundle-declaration.ts';
 import type { PluginSettingsComponent } from './plugin-settings-component.ts';

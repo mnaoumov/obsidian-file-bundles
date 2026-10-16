@@ -1,4 +1,4 @@
-import { dirname } from 'obsidian-dev-utils/path';
+import { dirname } from '@mnaoumov/typescript-lib/path';
 
 import type {
   BundleDeclaration,

@@ -4,12 +4,11 @@ import type {
   TFolder
 } from 'obsidian';
 
-import { normalizeOptionalProperties } from 'obsidian-dev-utils/object-utils';
-import { getFolderOrNull } from 'obsidian-dev-utils/obsidian/file-system';
+import { getFolderOrNull } from '@mnaoumov/obsidian-lib/file-system';
 import {
   resolveFolderNote,
   resolveFolderNoteConfig
-} from 'obsidian-dev-utils/obsidian/folder-note';
+} from '@mnaoumov/obsidian-lib/folder-note';
 import {
   generateMarkdownLink,
   hasLeadingDot,
@@ -17,14 +16,15 @@ import {
   LinkPathStyle,
   LinkStyle,
   splitSubpath
-} from 'obsidian-dev-utils/obsidian/link';
-import { parseLink } from 'obsidian-dev-utils/obsidian/parse-link';
+} from '@mnaoumov/obsidian-lib/link';
+import { parseLink } from '@mnaoumov/obsidian-lib/parse-link';
+import { normalizeOptionalProperties } from '@mnaoumov/typescript-lib/object-utils';
 import {
   dirname,
   join,
   normalizePath,
   relative
-} from 'obsidian-dev-utils/path';
+} from '@mnaoumov/typescript-lib/path';
 
 /**
  * Why an entry was rejected.

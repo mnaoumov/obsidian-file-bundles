@@ -1,18 +1,18 @@
+import type { CommandRegistrar } from '@mnaoumov/obsidian-lib/command-registrar';
+import type { PluginNoticeComponent } from '@mnaoumov/obsidian-lib/components/plugin-notice-component';
+import type { MenuEventRegistrar } from '@mnaoumov/obsidian-lib/menu-event-registrar';
 import type {
   App,
   Menu,
   TAbstractFile
 } from 'obsidian';
-import type { CommandRegistrar } from 'obsidian-dev-utils/obsidian/command-registrar';
-import type { PluginNoticeComponent } from 'obsidian-dev-utils/obsidian/components/plugin-notice-component';
-import type { MenuEventRegistrar } from 'obsidian-dev-utils/obsidian/menu-event-registrar';
 
-import { invokeAsyncSafely } from 'obsidian-dev-utils/async';
-import { ComponentEx } from 'obsidian-dev-utils/obsidian/components/component-ex';
+import { ComponentEx } from '@mnaoumov/obsidian-lib/components/component-ex';
 import {
   getAvailablePath,
   trashSafe
-} from 'obsidian-dev-utils/obsidian/vault';
+} from '@mnaoumov/obsidian-lib/vault';
+import { invokeAsyncSafely } from '@mnaoumov/typescript-lib/async';
 
 import type { BundleDeclaration } from './bundle-declaration.ts';
 import type { BundleIndexComponent } from './bundle-index-component.ts';

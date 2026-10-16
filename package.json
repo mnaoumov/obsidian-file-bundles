@@ -45,6 +45,8 @@
     "@vitest/coverage-v8": "$@vitest/coverage-v8",
     "deepmerge-ts": "^8.0.2",
     "eslint": "$eslint",
+    "katex": "^0.18.2",
+    "moment": "^2.31.0",
     "smol-toml": "^1.9.0",
     "typescript": "6.0.3"
   },
@@ -68,8 +70,8 @@
     "nano-staged": "^1.0.2",
     "obsidian": "^1.14.4",
     "obsidian-integration-testing": "^17.3.0",
-    "obsidian-test-mocks": "^7.0.0",
-    "sharp": "^0.35.4",
+    "obsidian-test-mocks": "^7.2.2",
+    "sharp": "^0.35.5",
     "vitest": "^5.0.1"
   },
   "dependencies": {

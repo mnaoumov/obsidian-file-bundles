@@ -1,7 +1,7 @@
 import type { App } from 'obsidian';
 
-import { invokeAsyncSafely } from 'obsidian-dev-utils/async';
-import { ComponentEx } from 'obsidian-dev-utils/obsidian/components/component-ex';
+import { ComponentEx } from '@mnaoumov/obsidian-lib/components/component-ex';
+import { invokeAsyncSafely } from '@mnaoumov/typescript-lib/async';
 
 import type { BundleDeclaration } from './bundle-declaration.ts';
 import type {

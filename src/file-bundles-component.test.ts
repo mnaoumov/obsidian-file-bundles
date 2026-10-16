@@ -1,19 +1,19 @@
+import type { CommandRegistrar } from '@mnaoumov/obsidian-lib/command-registrar';
+import type { PluginNoticeComponent } from '@mnaoumov/obsidian-lib/components/plugin-notice-component';
+import type {
+  FileMenuEventHandler,
+  MenuEventRegistrar
+} from '@mnaoumov/obsidian-lib/menu-event-registrar';
 import type {
   Command,
   Menu,
   MenuItem,
   TAbstractFile
 } from 'obsidian';
-import type { CommandRegistrar } from 'obsidian-dev-utils/obsidian/command-registrar';
-import type { PluginNoticeComponent } from 'obsidian-dev-utils/obsidian/components/plugin-notice-component';
-import type {
-  FileMenuEventHandler,
-  MenuEventRegistrar
-} from 'obsidian-dev-utils/obsidian/menu-event-registrar';
 
-import { sleep } from 'obsidian-dev-utils/async';
-import { castTo } from 'obsidian-dev-utils/object-utils';
-import { strictProxy } from 'obsidian-dev-utils/strict-proxy';
+import { sleep } from '@mnaoumov/typescript-lib/async';
+import { castTo } from '@mnaoumov/typescript-lib/object-utils';
+import { strictProxy } from '@mnaoumov/typescript-test-toolkit/strict-proxy';
 import {
   App,
   FileView,

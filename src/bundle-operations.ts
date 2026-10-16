@@ -3,15 +3,15 @@ import type { App } from 'obsidian';
 import {
   parseFrontmatter,
   setFrontmatter
-} from 'obsidian-dev-utils/obsidian/frontmatter';
-import { getAvailablePath } from 'obsidian-dev-utils/obsidian/vault';
-import { VaultTransaction } from 'obsidian-dev-utils/obsidian/vault-transaction';
+} from '@mnaoumov/obsidian-lib/frontmatter';
+import { getAvailablePath } from '@mnaoumov/obsidian-lib/vault';
+import { VaultTransaction } from '@mnaoumov/obsidian-lib/vault-transaction';
 import {
   basename,
   dirname,
   extname,
   join
-} from 'obsidian-dev-utils/path';
+} from '@mnaoumov/typescript-lib/path';
 
 import type {
   BundleDeclaration,

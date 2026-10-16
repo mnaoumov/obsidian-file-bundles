@@ -191,7 +191,7 @@ describe('FileBundlesComponent', () => {
     createComponent();
 
     invokeCommand('show-bundle');
-    expect(showNoticeMock).toHaveBeenCalledWith('File Bundles: no active file');
+    expect(showNoticeMock).toHaveBeenCalledWith('no active file');
   });
 
   it('should say so when the active file belongs to no bundle', async () => {
@@ -199,7 +199,7 @@ describe('FileBundlesComponent', () => {
     createComponent();
 
     invokeCommand('show-bundle');
-    expect(showNoticeMock).toHaveBeenCalledWith('File Bundles: no bundle declared for Alpha/alpha.jpg.md');
+    expect(showNoticeMock).toHaveBeenCalledWith('no bundle declared for Alpha/alpha.jpg.md');
   });
 
   it('should list what travels with a main file', async () => {
@@ -217,7 +217,7 @@ describe('FileBundlesComponent', () => {
     createComponent();
 
     invokeCommand('show-bundle');
-    expect(showNoticeMock).toHaveBeenCalledWith('File Bundles: Alpha/alpha.md carries Alpha/assets/diagram.png');
+    expect(showNoticeMock).toHaveBeenCalledWith('Alpha/alpha.md carries Alpha/assets/diagram.png');
   });
 
   it('should say a main file has no dependents rather than trailing off', async () => {
@@ -226,7 +226,7 @@ describe('FileBundlesComponent', () => {
     createComponent();
 
     invokeCommand('show-bundle');
-    expect(showNoticeMock).toHaveBeenCalledWith('File Bundles: Alpha/alpha.md carries a bundle with no dependents');
+    expect(showNoticeMock).toHaveBeenCalledWith('Alpha/alpha.md carries a bundle with no dependents');
   });
 
   it('should name the main file a dependent travels with', async () => {
@@ -244,7 +244,7 @@ describe('FileBundlesComponent', () => {
     createComponent();
 
     invokeCommand('show-bundle');
-    expect(showNoticeMock).toHaveBeenCalledWith('File Bundles: Alpha/assets/diagram.png travels with Alpha/alpha.md');
+    expect(showNoticeMock).toHaveBeenCalledWith('Alpha/assets/diagram.png travels with Alpha/alpha.md');
   });
 
   it('should name every bundle a shared dependent travels with', async () => {
@@ -262,7 +262,7 @@ describe('FileBundlesComponent', () => {
 
     invokeCommand('show-bundle');
     expect(showNoticeMock).toHaveBeenCalledWith(
-      'File Bundles: Shared/logo.png travels with Alpha/alpha.md, Beta/beta.md'
+      'Shared/logo.png travels with Alpha/alpha.md, Beta/beta.md'
     );
   });
 
@@ -288,7 +288,7 @@ describe('FileBundlesComponent', () => {
       await sleep({ milliseconds: SETTLE_DELAY_IN_MS });
 
       expect(settings.unlockedBundleMainPaths).toEqual(['Alpha/alpha.md']);
-      expect(showNoticeMock).toHaveBeenCalledWith('File Bundles: unlocked the bundle of Alpha/alpha.md');
+      expect(showNoticeMock).toHaveBeenCalledWith('unlocked the bundle of Alpha/alpha.md');
     });
 
     it('should lock an unlocked bundle again', async () => {
@@ -299,7 +299,7 @@ describe('FileBundlesComponent', () => {
       await sleep({ milliseconds: SETTLE_DELAY_IN_MS });
 
       expect(settings.unlockedBundleMainPaths).toEqual([]);
-      expect(showNoticeMock).toHaveBeenCalledWith('File Bundles: locked the bundle of Alpha/alpha.md');
+      expect(showNoticeMock).toHaveBeenCalledWith('locked the bundle of Alpha/alpha.md');
     });
 
     it('should say so when the active file belongs to no bundle', async () => {
@@ -309,7 +309,7 @@ describe('FileBundlesComponent', () => {
       invokeCommand('toggle-lock');
       await sleep({ milliseconds: SETTLE_DELAY_IN_MS });
 
-      expect(showNoticeMock).toHaveBeenCalledWith('File Bundles: no bundle declared for Alpha/unrelated.md');
+      expect(showNoticeMock).toHaveBeenCalledWith('no bundle declared for Alpha/unrelated.md');
       expect(settings.unlockedBundleMainPaths).toEqual([]);
     });
 
@@ -338,7 +338,7 @@ describe('FileBundlesComponent', () => {
       invokeCommand('delete-bundle');
       await sleep({ milliseconds: SETTLE_DELAY_IN_MS });
 
-      expect(showNoticeMock).toHaveBeenCalledWith('File Bundles: deleted the bundle of Alpha/alpha.md');
+      expect(showNoticeMock).toHaveBeenCalledWith('deleted the bundle of Alpha/alpha.md');
     });
 
     it('should do nothing when the active file belongs to no bundle', async () => {
@@ -348,7 +348,7 @@ describe('FileBundlesComponent', () => {
       invokeCommand('delete-bundle');
       await sleep({ milliseconds: SETTLE_DELAY_IN_MS });
 
-      expect(showNoticeMock).toHaveBeenCalledWith('File Bundles: no bundle declared for Alpha/unrelated.md');
+      expect(showNoticeMock).toHaveBeenCalledWith('no bundle declared for Alpha/unrelated.md');
     });
   });
 
@@ -389,7 +389,7 @@ describe('FileBundlesComponent', () => {
       expect(readFile('Alpha/assets/diagram 1.png')).toBe('diagram');
       expect(app.vault.getFileByPath('Alpha/assets/diagram.png')).not.toBeNull();
       expect(showNoticeMock)
-        .toHaveBeenCalledWith('File Bundles: duplicated the bundle of Alpha/alpha.md as Alpha/alpha 1.md');
+        .toHaveBeenCalledWith('duplicated the bundle of Alpha/alpha.md as Alpha/alpha 1.md');
     });
 
     /*
@@ -424,7 +424,7 @@ describe('FileBundlesComponent', () => {
       invokeCommand('duplicate-bundle');
       await sleep({ milliseconds: SETTLE_DELAY_IN_MS });
 
-      expect(showNoticeMock).toHaveBeenCalledWith('File Bundles: no bundle declared for Alpha/unrelated.md');
+      expect(showNoticeMock).toHaveBeenCalledWith('no bundle declared for Alpha/unrelated.md');
       expect(app.vault.getFileByPath('Alpha/unrelated 1.md')).toBeNull();
     });
   });
@@ -453,7 +453,7 @@ describe('FileBundlesComponent', () => {
 
       invokeCommand('show-bundle');
       expect(showNoticeMock)
-        .toHaveBeenCalledWith('File Bundles: Alpha/report.html.md declares the bundle of Alpha/report.html');
+        .toHaveBeenCalledWith('Alpha/report.html.md declares the bundle of Alpha/report.html');
     });
 
     it('should lock and unlock the bundle from the sidecar', async () => {
@@ -463,7 +463,7 @@ describe('FileBundlesComponent', () => {
       await sleep({ milliseconds: SETTLE_DELAY_IN_MS });
 
       expect(settings.unlockedBundleMainPaths).toEqual([MAIN_PATH]);
-      expect(showNoticeMock).toHaveBeenCalledWith('File Bundles: unlocked the bundle of Alpha/report.html');
+      expect(showNoticeMock).toHaveBeenCalledWith('unlocked the bundle of Alpha/report.html');
     });
 
     it('should delete the bundle from the sidecar', async () => {
@@ -472,7 +472,7 @@ describe('FileBundlesComponent', () => {
       invokeCommand('delete-bundle');
       await sleep({ milliseconds: SETTLE_DELAY_IN_MS });
 
-      expect(showNoticeMock).toHaveBeenCalledWith('File Bundles: deleted the bundle of Alpha/report.html');
+      expect(showNoticeMock).toHaveBeenCalledWith('deleted the bundle of Alpha/report.html');
     });
 
     it('should duplicate the bundle from the sidecar', async () => {
@@ -484,7 +484,7 @@ describe('FileBundlesComponent', () => {
       expect(app.vault.getFileByPath('Alpha/report 1.html')).not.toBeNull();
       expect(app.vault.getFileByPath('Alpha/report 1.html.md')).not.toBeNull();
       expect(showNoticeMock)
-        .toHaveBeenCalledWith('File Bundles: duplicated the bundle of Alpha/report.html as Alpha/report 1.html');
+        .toHaveBeenCalledWith('duplicated the bundle of Alpha/report.html as Alpha/report 1.html');
     });
 
     it('should offer the menu items on the sidecar row', () => {
@@ -557,7 +557,7 @@ describe('FileBundlesComponent', () => {
       openFileMenu('Alpha/alpha.md')[1]?.onClick();
       await sleep({ milliseconds: SETTLE_DELAY_IN_MS });
 
-      expect(showNoticeMock).toHaveBeenCalledWith('File Bundles: deleted the bundle of Alpha/alpha.md');
+      expect(showNoticeMock).toHaveBeenCalledWith('deleted the bundle of Alpha/alpha.md');
     });
   });
 });

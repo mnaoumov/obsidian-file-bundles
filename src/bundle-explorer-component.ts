@@ -35,7 +35,7 @@ const MAIN_CSS_CLASS = 'file-bundles-main';
  * Shows a bundle in the File Explorer as one thing: the main file marked, its dependents folded away.
  *
  * Display ONLY. It adds and removes CSS classes on rows the File Explorer has already drawn, and touches
- * nothing else. Advanced Exclude hides a file by removing it from the vault index — correct for exclusion
+ * nothing else. `Advanced Exclude` hides a file by removing it from the vault index — correct for exclusion
  * and wrong here, because a bundle's dependents have to stay indexed and stay resolvable as link targets.
  * That is the entire difference between a locked bundle and an excluded folder, so this component
  * deliberately borrows that plugin's way of reaching the file tree and none of its index projection.

@@ -64,8 +64,8 @@ export interface FileBundlesComponentConstructorParams {
  * Owns the plugin's entry points: its commands and its File Explorer menu items.
  *
  * Commands and a menu are deliberately the whole interaction surface. This plugin never registers a
- * rename/delete handler of its own — Advanced Rename and Delete Handler is the single owner of that
- * behavior in a vault and refuses to load beside a plugin that competes with it. File Bundles moves only
+ * rename/delete handler of its own — `Advanced Rename and Delete Handler` is the single owner of that
+ * behavior in a vault and refuses to load beside a plugin that competes with it. `File Bundles` moves only
  * the dependents a bundle declares, and leaves links and attachments to that plugin.
  */
 export class FileBundlesComponent extends ComponentEx {
@@ -166,7 +166,7 @@ export class FileBundlesComponent extends ComponentEx {
    */
   private async deleteBundle(declaration: BundleDeclaration): Promise<void> {
     await trashSafe(this.app, declaration.mainPath);
-    this.pluginNoticeComponent.showNotice(`File Bundles: deleted the bundle of ${declaration.mainPath}`);
+    this.pluginNoticeComponent.showNotice(`deleted the bundle of ${declaration.mainPath}`);
   }
 
   private async deleteBundleOfActiveFile(): Promise<void> {
@@ -210,7 +210,7 @@ export class FileBundlesComponent extends ComponentEx {
     });
 
     this.pluginNoticeComponent.showNotice(
-      `File Bundles: duplicated the bundle of ${declaration.mainPath} as ${duplicatedDeclaration.mainPath}`
+      `duplicated the bundle of ${declaration.mainPath} as ${duplicatedDeclaration.mainPath}`
     );
   }
 
@@ -231,13 +231,13 @@ export class FileBundlesComponent extends ComponentEx {
   private findBundleOfActiveFile(): BundleDeclaration | null {
     const activeFile = this.app.workspace.getActiveFile();
     if (!activeFile) {
-      this.pluginNoticeComponent.showNotice('File Bundles: no active file');
+      this.pluginNoticeComponent.showNotice('no active file');
       return null;
     }
 
     const declaration = this.findBundleOf(activeFile.path);
     if (!declaration) {
-      this.pluginNoticeComponent.showNotice(`File Bundles: no bundle declared for ${activeFile.path}`);
+      this.pluginNoticeComponent.showNotice(`no bundle declared for ${activeFile.path}`);
       return null;
     }
 
@@ -251,7 +251,7 @@ export class FileBundlesComponent extends ComponentEx {
   private showBundleOfActiveFile(): void {
     const activeFile = this.app.workspace.getActiveFile();
     if (!activeFile) {
-      this.pluginNoticeComponent.showNotice('File Bundles: no active file');
+      this.pluginNoticeComponent.showNotice('no active file');
       return;
     }
 
@@ -263,7 +263,7 @@ export class FileBundlesComponent extends ComponentEx {
         ...new Set(ownDeclarations.flatMap((declaration) => declaration.members.map((member) => member.path)))
       ];
       const description = memberPaths.length === 0 ? 'a bundle with no dependents' : memberPaths.join(', ');
-      this.pluginNoticeComponent.showNotice(`File Bundles: ${activeFile.path} carries ${description}`);
+      this.pluginNoticeComponent.showNotice(`${activeFile.path} carries ${description}`);
       return;
     }
 
@@ -274,7 +274,7 @@ export class FileBundlesComponent extends ComponentEx {
     const ownDeclaration = index.getDeclaration(activeFile.path);
     if (ownDeclaration) {
       this.pluginNoticeComponent.showNotice(
-        `File Bundles: ${activeFile.path} declares the bundle of ${ownDeclaration.mainPath}`
+        `${activeFile.path} declares the bundle of ${ownDeclaration.mainPath}`
       );
       return;
     }
@@ -282,11 +282,11 @@ export class FileBundlesComponent extends ComponentEx {
     const claimingDeclarations = index.getDeclarationsOfMember(activeFile.path);
     if (claimingDeclarations.length > 0) {
       const mainPaths = claimingDeclarations.map((declaration) => declaration.mainPath).join(', ');
-      this.pluginNoticeComponent.showNotice(`File Bundles: ${activeFile.path} travels with ${mainPaths}`);
+      this.pluginNoticeComponent.showNotice(`${activeFile.path} travels with ${mainPaths}`);
       return;
     }
 
-    this.pluginNoticeComponent.showNotice(`File Bundles: no bundle declared for ${activeFile.path}`);
+    this.pluginNoticeComponent.showNotice(`no bundle declared for ${activeFile.path}`);
   }
 
   /**
@@ -305,7 +305,7 @@ export class FileBundlesComponent extends ComponentEx {
     });
 
     this.pluginNoticeComponent.showNotice(
-      `File Bundles: ${wasUnlocked ? 'locked' : 'unlocked'} the bundle of ${declaration.mainPath}`
+      `${wasUnlocked ? 'locked' : 'unlocked'} the bundle of ${declaration.mainPath}`
     );
   }
 

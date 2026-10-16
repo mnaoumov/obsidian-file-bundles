@@ -266,7 +266,7 @@ export async function applyBundleCopies(params: ApplyBundleCopiesParams): Promis
  *
  * Every rename goes through the library's {@link VaultTransaction}, so a failure part-way rolls the earlier
  * ones back rather than leaving a bundle half-moved. The transaction renames through
- * `fileManager.renameFile`, which means Obsidian — or Advanced Rename and Delete Handler where it is
+ * `fileManager.renameFile`, which means Obsidian — or `Advanced Rename and Delete Handler` where it is
  * installed — does the link bookkeeping, exactly as this plugin's invariants require.
  *
  * @param params - The parameters.

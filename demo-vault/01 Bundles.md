@@ -64,7 +64,7 @@ Try it with `Trip note.md` open: you get `Trip note 1.md` beside it, carrying a 
 
 ## What it does not take over
 
-This plugin never registers a rename/delete handler of its own. Updating the links to a renamed note, and moving the attachments it owns, belong to [Advanced Rename and Delete Handler](https://github.com/mnaoumov/obsidian-advanced-rename-and-delete-handler) — one vault, one owner of that behavior. File Bundles moves only the dependents a bundle declares.
+This plugin never registers a rename/delete handler of its own. Updating the links to a renamed note, and moving the attachments it owns, belong to [Advanced Rename and Delete Handler](https://github.com/mnaoumov/obsidian-advanced-rename-and-delete-handler) — one vault, one owner of that behavior. `File Bundles` moves only the dependents a bundle declares.
 
 ## A file two bundles share
 

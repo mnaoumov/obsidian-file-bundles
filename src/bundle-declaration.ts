@@ -522,7 +522,8 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 /**
  * Canonicalizes a resolved entry path, and rejects the two forms that name nothing a bundle can hold.
  *
- * Both exist because `normalizePath()` leaves a folder path exactly as written: it keeps a trailing slash,
+ * Both exist because `normalizePath()` leaves a folder path exactly as written. That is the
+ * `@mnaoumov/typescript-lib/path` one, which is `posix.normalize`, not Obsidian's: it keeps a trailing slash,
  * so `/Shared/brand/` stays `Shared/brand/` and names no folder the vault has; and it answers `.` for an
  * empty remainder and `..` for a climb past the top, so `/` reaches the rest of the plugin as the VAULT
  * ROOT and `../..` as a path outside the vault altogether. Neither is caught anywhere downstream — the

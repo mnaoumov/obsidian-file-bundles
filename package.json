@@ -70,7 +70,7 @@
     "nano-staged": "^1.0.2",
     "obsidian": "^1.14.4",
     "obsidian-integration-testing": "^17.3.0",
-    "obsidian-test-mocks": "^7.2.2",
+    "obsidian-test-mocks": "^7.2.3",
     "sharp": "^0.35.5",
     "vitest": "^5.0.1"
   },

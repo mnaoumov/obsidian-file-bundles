@@ -423,5 +423,34 @@ describe('BundleIndexComponent', () => {
 
       expect(component.getIndex().getDeclarations()).toEqual([]);
     });
+
+    it('should match an exclusion regardless of case', async () => {
+      settings.excludedPathPatterns = ['alpha'];
+      createNote(ALPHA_PATH, ALPHA_CONTENT);
+
+      const component = await createComponent();
+
+      expect(component.getIndex().getDeclarations()).toEqual([]);
+    });
+
+    it('should accept a glob exclusion, dropping only the members it matches', async () => {
+      settings.excludedPathPatterns = ['*.png'];
+      createNote(ALPHA_PATH, ALPHA_CONTENT);
+
+      const component = await createComponent();
+
+      expect(component.getIndex().getDeclarations()[0]?.members.map((member) => member.path)).toEqual(['Alpha/assets']);
+    });
+
+    // A folder-only glob (one ending in a slash) matches the folder itself only when told the path is a folder, so a
+    // folder member has to be checked as one — otherwise the glob would drop the folder's contents and keep the folder.
+    it('should drop a folder member that a folder-only glob matches', async () => {
+      settings.excludedPathPatterns = ['asset*/'];
+      createNote(ALPHA_PATH, ALPHA_CONTENT);
+
+      const component = await createComponent();
+
+      expect(component.getIndex().getDeclarations()[0]?.members).toEqual([]);
+    });
   });
 });

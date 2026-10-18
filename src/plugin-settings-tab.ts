@@ -44,7 +44,7 @@ export class PluginSettingsTab extends PluginSettingsTabBase<PluginSettings> {
         }
       }),
       this.settingEx({
-        desc: 'Paths matching any of these are never treated as part of a bundle, whether they declare one or are declared by one. Each entry is a plain path, matching it and everything under it, or a regular expression between slashes.',
+        desc: 'Paths matching any of these are never treated as part of a bundle, whether they declare one or are declared by one. Each entry is a plain path, matching it and everything under it; a glob such as `*.pdf` or `Archive/**/*.png`, where `*`, `?` and `[abc]` are wildcards, a glob without `/` matches a name at any depth, and a trailing `/` matches folders only; or a regular expression such as `/^Inbox\\//`, whose flags are honoured. Matching ignores case. To match `*`, `?` or `[` literally in a plain path, escape it with `\\`.',
         name: 'Excluded paths',
         render: (setting) => {
           setting.addMultipleText((multipleText) => {

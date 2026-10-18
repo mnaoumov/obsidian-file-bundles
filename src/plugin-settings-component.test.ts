@@ -77,13 +77,13 @@ describe('PluginSettingsComponent', () => {
     });
 
     /*
-     * The exclusion list takes the usual entry syntax — a plain path, or a regular expression in
+     * The exclusion list takes the usual entry syntax — a plain path, a glob, or a regular expression in
      * slashes — so it is the library's own validator that answers here rather than a second dialect.
      */
-    it('should accept plain paths and well-formed regular expressions as exclusions', () => {
+    it('should accept plain paths, globs and well-formed regular expressions as exclusions', () => {
       const validator = getRegisteredValidators().find((candidate) => candidate.key === 'excludedPathPatterns');
       expect(validator).toBeDefined();
-      expect(castTo<PathsValidator>(validator?.validator)(['Archive', String.raw`/^Inbox\//`])).toBeUndefined();
+      expect(castTo<PathsValidator>(validator?.validator)(['Archive', 'Attachments/**/*.pdf', String.raw`/^inbox\//i`])).toBeUndefined();
     });
 
     it('should reject an exclusion that is a half-typed regular expression', () => {

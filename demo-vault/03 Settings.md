@@ -7,7 +7,12 @@ Open **Settings -> Community plugins -> `File Bundles`** to see the settings tab
 - `frontmatterKey`
   - the frontmatter key a markdown file uses to declare a bundle. The key is what marks a declaration, never the file name, so changing this changes what the plugin looks for and nothing else.
 - `excludedPathPatterns`
-  - paths matching any of these are never treated as part of a bundle, whether they declare one or are declared by one. Each entry is a plain path, matching it and everything under it, or a regular expression between slashes — the same syntax the rest of this author's plugins use for include/exclude lists.
+  - paths matching any of these are never treated as part of a bundle, whether they declare one or are declared by one. Each entry takes one of three forms — the same syntax the rest of this author's plugins use for include/exclude lists — and every form ignores case:
+    - a plain path, matching it and everything under it: `Archive`;
+    - a glob, where `*` matches within one path segment, `**` across segments, `?` one character, and `[abc]` / `[!abc]` a set: `*.pdf`, `Archive/**/*.png`. A glob without a `/` matches a name at any depth, one with a `/` is anchored to the vault root, and a trailing `/` matches folders only (`tmp*/`);
+    - a regular expression between slashes, whose flags are honoured: `/^Inbox\//`.
+
+    Because `*`, `?` and `[` make an entry a glob, a plain path containing one of them literally escapes it: `Notes \[old\]`.
 
 ## What a locked bundle does
 

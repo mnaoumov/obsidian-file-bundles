@@ -1,6 +1,6 @@
 # Settings
 
-Open **Settings -> Community plugins -> File Bundles** to see the settings tab. Each option below lists the setting key stored in the plugin's `data.json`.
+Open **Settings -> Community plugins -> `File Bundles`** to see the settings tab. Each option below lists the setting key stored in the plugin's `data.json`.
 
 ## What counts as a declaration
 

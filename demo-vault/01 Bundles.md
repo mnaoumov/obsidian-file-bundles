@@ -30,7 +30,7 @@ caption: Show the bundle of the active file
 require('/demoSetup.ts').runCommand(app, 'show-bundle');
 ```
 
-Manual equivalent: run the Command Palette entry **File Bundles: Show the bundle the active file belongs to**.
+Manual equivalent: run the Command Palette entry **`File Bundles`: Show the bundle the active file belongs to**.
 
 ## Delete the whole bundle
 
@@ -43,7 +43,7 @@ caption: Delete the bundle of the active file
 require('/demoSetup.ts').runCommand(app, 'delete-bundle');
 ```
 
-Manual equivalent: **File Bundles: Delete the bundle the active file belongs to**, or right-click any file the bundle claims and choose **Delete bundle**.
+Manual equivalent: **`File Bundles`: Delete the bundle the active file belongs to**, or right-click any file the bundle claims and choose **Delete bundle**.
 
 This is the same route a bundle takes when you delete its main file any other way: the command only trashes the main file, and the ordinary deletion path carries the rest.
 
@@ -58,7 +58,7 @@ caption: Duplicate the bundle of the active file
 require('/demoSetup.ts').runCommand(app, 'duplicate-bundle');
 ```
 
-Manual equivalent: **File Bundles: Duplicate the bundle the active file belongs to**.
+Manual equivalent: **`File Bundles`: Duplicate the bundle the active file belongs to**.
 
 Try it with `Trip note.md` open: you get `Trip note 1.md` beside it, carrying a `Trip assets 1` folder of its own, and the copy's frontmatter names `./Trip assets 1` rather than the folder it was copied from. Obsidian's own **Make a copy** does none of that — it copies the one file, and the copy is left claiming the original's dependents.
 

@@ -18,7 +18,7 @@ caption: Lock or unlock the bundle of the active file
 require('/demoSetup.ts').runCommand(app, 'toggle-lock');
 ```
 
-Manual equivalent: **File Bundles: Lock or unlock the bundle the active file belongs to**, or right-click any file the bundle claims and choose **Unlock bundle** / **Lock bundle**.
+Manual equivalent: **`File Bundles`: Lock or unlock the bundle the active file belongs to**, or right-click any file the bundle claims and choose **Unlock bundle** / **Lock bundle**.
 
 Run it again to lock the bundle back up.
 

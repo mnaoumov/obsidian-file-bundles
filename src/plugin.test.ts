@@ -2,6 +2,8 @@ import type { PluginManifest } from 'obsidian';
 
 import { OpenDemoVaultCommandHandler } from '@mnaoumov/obsidian-lib/command-handlers/open-demo-vault-command-handler';
 import { PluginSettingsTabComponent } from '@mnaoumov/obsidian-lib/components/plugin-settings-tab-component';
+import { ObsidianLibrary } from '@mnaoumov/obsidian-lib/library';
+import { Library } from '@mnaoumov/typescript-lib/library';
 import { castTo } from '@mnaoumov/typescript-lib/object-utils';
 import { Component } from 'obsidian';
 import { App } from 'obsidian-test-mocks/obsidian';
@@ -106,6 +108,10 @@ describe('Plugin', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    // Each test loads a fresh plugin and never unloads it, and the library's contexts initialize only once
+    // per load, so they are reset here the way the plugin context's own unload would reset them.
+    Library.resetToDefault();
+    ObsidianLibrary.resetToDefault();
     app = App.createConfigured__();
     const appOriginal = app.asOriginalType__();
 

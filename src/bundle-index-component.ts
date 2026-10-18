@@ -97,7 +97,7 @@ export class BundleIndexComponent extends LayoutReadyComponent {
     super(params.app);
     this.pluginSettingsComponent = params.pluginSettingsComponent;
     this.index = new BundleIndex({
-      shouldExcludePath: (path: string): boolean => this.pathSettings.isPathIgnored(path)
+      shouldExcludePath: (path: string, isFolder: boolean): boolean => this.pathSettings.isPathIgnored(path, isFolder)
     });
   }
 

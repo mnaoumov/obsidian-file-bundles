@@ -16,9 +16,10 @@ export interface BundleIndexConstructorOptions {
    * declared by one. Read live, so a settings change takes effect on the next rebuild.
    *
    * @param path - The vault-relative path to test.
+   * @param isFolder - Whether the path names a folder, so that a folder-only exclusion can match it.
    * @returns Whether the path is excluded.
    */
-  readonly shouldExcludePath?: (this: void, path: string) => boolean;
+  readonly shouldExcludePath?: (this: void, path: string, isFolder: boolean) => boolean;
 }
 
 /**
@@ -53,7 +54,7 @@ export class BundleIndex {
   private readonly declaringPathsByFolderMemberPath = new Map<string, Set<string>>();
   private readonly declaringPathsByMainPath = new Map<string, Set<string>>();
   private readonly declaringPathsByMemberPath = new Map<string, Set<string>>();
-  private readonly shouldExcludePath: (this: void, path: string) => boolean;
+  private readonly shouldExcludePath: (this: void, path: string, isFolder: boolean) => boolean;
 
   /**
    * Creates an index.
@@ -214,11 +215,11 @@ export class BundleIndex {
   public setDeclaration(declaration: BundleDeclaration): void {
     this.removeDeclaration(declaration.declaringPath);
 
-    if (this.shouldExcludePath(declaration.declaringPath) || this.shouldExcludePath(declaration.mainPath)) {
+    if (this.shouldExcludePath(declaration.declaringPath, false) || this.shouldExcludePath(declaration.mainPath, false)) {
       return;
     }
 
-    const members = declaration.members.filter((member: BundleMember) => !this.shouldExcludePath(member.path));
+    const members = declaration.members.filter((member: BundleMember) => !this.shouldExcludePath(member.path, member.kind === BundleMemberKind.Folder));
     const indexedDeclaration: BundleDeclaration = { ...declaration, members };
 
     this.declarationsByDeclaringPath.set(declaration.declaringPath, indexedDeclaration);

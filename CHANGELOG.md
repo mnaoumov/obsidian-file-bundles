@@ -1,5 +1,13 @@
 # CHANGELOG
 
+## 2.0.0
+
+Migration: excluded-path entries now match case-insensitively in every form. An unescaped `*`, `?` or `[` makes an entry a glob (`*.pdf`, `Archive/**/*.png`, `tmp*/`), so a plain path that contains one of those characters literally must escape it (`Notes \[old\]`). An entry shaped `/pattern/flags` is a regular expression whose flags are honored, and a folder-only glob (ending in `/`) excludes a declared folder as well as its contents.
+
+- **BREAKING: excluded paths take globs and match case-insensitively.** The excluded-paths setting now accepts globs and regular expressions with flags, and every entry matches regardless of case.
+- Notices no longer repeat the plugin name inside their text.
+- The README names the community directory as the way to install the plugin.
+
 ## 1.0.0
 
 First release.

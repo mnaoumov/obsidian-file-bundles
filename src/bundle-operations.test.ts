@@ -35,6 +35,7 @@ interface DeclarationOverrides {
 }
 
 const ALPHA_PATH = 'Alpha/alpha.md';
+const FIRST_PROCESS_TIMEOUT_IN_MS = 30_000;
 const FRONTMATTER_KEY = 'file-bundles';
 const ROOT_ALPHA_PATH = 'alpha.md';
 
@@ -760,7 +761,14 @@ describe('the vault operations', () => {
   });
 
   describe('rewriteBundleDeclaration', () => {
-    it('should restore the anchoring Obsidian stripped', async () => {
+    /*
+     * The first case to rewrite a note pays a one-off cost nothing earlier in this file does: the first run of
+     * the library's `process` retry-with-timeout chain and of its YAML stringify. That is about 30 ms when idle
+     * and was 5.4 s with the host CPU at 100%, while the next case took 0.8 s, so the default 5 s timeout fails a
+     * release preflight on load alone. There is no lazy import to move out: the cost is cold code, spread over
+     * the whole call, and it lands in whichever case calls it first.
+     */
+    it('should restore the anchoring Obsidian stripped', { timeout: FIRST_PROCESS_TIMEOUT_IN_MS }, async () => {
       createFile(ALPHA_PATH, '---\nfile-bundles:\n  files:\n    - "[[diagram.png]]"\n---\n\nAlpha.\n');
       createFile('Alpha/assets/diagram.png');
 

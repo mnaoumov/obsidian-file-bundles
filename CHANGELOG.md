@@ -1,5 +1,13 @@
 # CHANGELOG
 
+## 3.0.0
+
+- build(deps)!: move to obsidian-lib 6 and obsidian-dev-toolkit 5
+- docs: shorten the debugging section
+- chore: replace leftover obsidian-dev-utils references with @mnaoumov/obsidian-lib
+- docs(readme): lead the Debugging section with `Advanced Debug Mode`
+- docs(agents): record the 2.0.0 release and why it is a major
+
 ## 2.0.0
 
 Migration: excluded-path entries now match case-insensitively in every form. An unescaped `*`, `?` or `[` makes an entry a glob (`*.pdf`, `Archive/**/*.png`, `tmp*/`), so a plain path that contains one of those characters literally must escape it (`Notes \[old\]`). An entry shaped `/pattern/flags` is a regular expression whose flags are honored, and a folder-only glob (ending in `/`) excludes a declared folder as well as its contents.

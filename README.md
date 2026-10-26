@@ -106,6 +106,18 @@ Four commands, and the locking and deleting ones on the File Explorer's context 
 
 Moving and renaming need no command: a bundle follows its main file wherever you drag it.
 
+## Similar plugins
+
+- [`Documents Bundle`](https://community.obsidian.md/plugins/documents-bundle) — turns a note into a folder with an `assets/` folder beside it, saves pasted and dropped files there and keeps the folder's name in step with the note; this plugin has no folder convention and does not capture new attachments, but bundles whatever files and folders a declaration names, wherever they sit.
+- [`Sidecars`](https://github.com/awesym/obsidian-sidecars) (not in the community directory) — creates and manages a companion note named after each attachment, cleans up orphaned ones and can dim or hide them in the File Explorer; this plugin pairs files by a declaration rather than by name, and one bundle can hold any number of files and folders.
+- [`Media Sidecar Tools`](https://community.obsidian.md/plugins/media-sidecar-tools) — creates a sidecar note for a media file on Ctrl+Click and can hide the media in the File Explorer; this plugin creates no notes, and groups declared files and folders that move, rename, duplicate and delete together.
+- [`Att Meta Map`](https://community.obsidian.md/plugins/att-meta-map) — creates companion notes for PDFs and other attachments, fills their properties from file metadata and links several resources to one note through a `source` property; this plugin fills no metadata, and instead carries a bundle's files through file operations and hides them while it is locked.
+- [`Depends`](https://community.obsidian.md/plugins/depends) — declares dependencies between notes in frontmatter and writes them as links for the graph view; this plugin's declaration acts on the files themselves, moving and deleting them with their main file.
+- [`Nested Notes`](https://community.obsidian.md/plugins/nested-notes) — nests notes under other notes in its own view by drag and drop; this plugin keeps the File Explorer and changes only which rows it shows, with the grouping coming from a declaration.
+- [`Custom Attachment Location`](https://community.obsidian.md/plugins/custom-attachment-location) — decides where a note's attachments are stored and keeps that folder in step with the note; it handles one fixed relation, a note and its attachment folder, while this plugin lets any file declare any set of files and folders that belong with it.
+
+Last searched for similar plugins on 2026-10-26.
+
 ## Installation
 
 The plugin is available in [the official Community Plugins repository](https://community.obsidian.md/plugins/file-bundles).

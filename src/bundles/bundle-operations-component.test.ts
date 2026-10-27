@@ -62,8 +62,8 @@ function createDeclaration(overrides: DeclarationOverrides = {}): BundleDeclarat
 
 describe('BundleOperationsComponent', () => {
   let app: App;
-  let deleteHandlers: ((event: BundleDeleteEvent) => void)[];
-  let renameHandlers: ((event: BundleRenameEvent) => void)[];
+  let deleteHandlers: (($event: BundleDeleteEvent) => void)[];
+  let renameHandlers: (($event: BundleRenameEvent) => void)[];
   let settings: PluginSettings;
 
   beforeEach(() => {
@@ -78,10 +78,10 @@ describe('BundleOperationsComponent', () => {
     const component = new BundleOperationsComponent({
       app: app.asOriginalType__(),
       bundleIndexComponent: strictProxy<BundleIndexComponent>({
-        registerDeleteHandler: (handler: (event: BundleDeleteEvent) => void) => {
+        registerDeleteHandler: (handler: ($event: BundleDeleteEvent) => void) => {
           deleteHandlers.push(handler);
         },
-        registerRenameHandler: (handler: (event: BundleRenameEvent) => void) => {
+        registerRenameHandler: (handler: ($event: BundleRenameEvent) => void) => {
           renameHandlers.push(handler);
         }
       }),
@@ -113,16 +113,16 @@ describe('BundleOperationsComponent', () => {
     return app.vault.readSync__(file);
   }
 
-  async function fireRename(event: BundleRenameEvent): Promise<void> {
+  async function fireRename($event: BundleRenameEvent): Promise<void> {
     for (const handler of renameHandlers) {
-      handler(event);
+      handler($event);
     }
     await sleep({ milliseconds: SETTLE_DELAY_IN_MS });
   }
 
-  async function fireDelete(event: BundleDeleteEvent): Promise<void> {
+  async function fireDelete($event: BundleDeleteEvent): Promise<void> {
     for (const handler of deleteHandlers) {
-      handler(event);
+      handler($event);
     }
     await sleep({ milliseconds: SETTLE_DELAY_IN_MS });
   }

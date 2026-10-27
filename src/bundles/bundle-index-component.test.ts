@@ -304,8 +304,8 @@ describe('BundleIndexComponent', () => {
       createNote(ALPHA_PATH, ALPHA_CONTENT);
       const component = await createComponent();
       const events: BundleRenameEvent[] = [];
-      component.registerRenameHandler((event) => {
-        events.push(event);
+      component.registerRenameHandler(($event) => {
+        events.push($event);
       });
 
       app.vault.createFolderSync__('Moved');
@@ -323,8 +323,8 @@ describe('BundleIndexComponent', () => {
       createNote('Beta/beta.md', PLAIN_CONTENT);
       const component = await createComponent();
       const events: BundleRenameEvent[] = [];
-      component.registerRenameHandler((event) => {
-        events.push(event);
+      component.registerRenameHandler(($event) => {
+        events.push($event);
       });
 
       await app.vault.rename(ensureFile('Beta/beta.md'), 'Beta/renamed.md');
@@ -337,8 +337,8 @@ describe('BundleIndexComponent', () => {
       createNote('Beta/beta.md', ALPHA_CONTENT);
       const component = await createComponent();
       const events: BundleDeleteEvent[] = [];
-      component.registerDeleteHandler((event) => {
-        events.push(event);
+      component.registerDeleteHandler(($event) => {
+        events.push($event);
       });
 
       app.vault.trigger('delete', ensureFile(ALPHA_PATH));
@@ -354,8 +354,8 @@ describe('BundleIndexComponent', () => {
       createNote('Beta/beta.md', PLAIN_CONTENT);
       const component = await createComponent();
       const events: BundleDeleteEvent[] = [];
-      component.registerDeleteHandler((event) => {
-        events.push(event);
+      component.registerDeleteHandler(($event) => {
+        events.push($event);
       });
 
       app.vault.trigger('delete', ensureFile('Beta/beta.md'));
@@ -368,11 +368,11 @@ describe('BundleIndexComponent', () => {
       const component = await createComponent();
       const deleteEvents: BundleDeleteEvent[] = [];
       const renameEvents: BundleRenameEvent[] = [];
-      component.registerDeleteHandler((event) => {
-        deleteEvents.push(event);
+      component.registerDeleteHandler(($event) => {
+        deleteEvents.push($event);
       });
-      component.registerRenameHandler((event) => {
-        renameEvents.push(event);
+      component.registerRenameHandler(($event) => {
+        renameEvents.push($event);
       });
       component.unload();
 

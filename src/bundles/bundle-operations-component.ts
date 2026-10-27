@@ -72,12 +72,12 @@ export class BundleOperationsComponent extends ComponentEx {
   public override onload(): void {
     super.onload();
 
-    this.bundleIndexComponent.registerRenameHandler((event) => {
-      invokeAsyncSafely(() => this.handleRename(event));
+    this.bundleIndexComponent.registerRenameHandler(($event) => {
+      invokeAsyncSafely(() => this.handleRename($event));
     });
 
-    this.bundleIndexComponent.registerDeleteHandler((event) => {
-      invokeAsyncSafely(() => this.handleDelete(event));
+    this.bundleIndexComponent.registerDeleteHandler(($event) => {
+      invokeAsyncSafely(() => this.handleDelete($event));
     });
   }
 
@@ -103,26 +103,26 @@ export class BundleOperationsComponent extends ComponentEx {
     });
   }
 
-  private async handleDelete(event: BundleDeleteEvent): Promise<void> {
+  private async handleDelete($event: BundleDeleteEvent): Promise<void> {
     if (!this.pluginSettingsComponent.settings.shouldPropagateDeletions) {
       return;
     }
 
-    for (const declaration of event.declarations) {
+    for (const declaration of $event.declarations) {
       if (this.isUnlocked(declaration)) {
         continue;
       }
 
       const paths = planBundleDeletion({
         declaration,
-        otherDeclarations: event.otherDeclarations
+        otherDeclarations: $event.otherDeclarations
       });
       await trashBundlePaths({ app: this.app, paths });
     }
   }
 
-  private async handleRename(event: BundleRenameEvent): Promise<void> {
-    for (const declaration of event.declarations) {
+  private async handleRename($event: BundleRenameEvent): Promise<void> {
+    for (const declaration of $event.declarations) {
       /*
        * An unlocked bundle moves nothing, but its declaration is still maintained. Unlocking means "do not
        * move my files", not "let the declaration rot": Obsidian has just stripped the anchoring off every
@@ -134,13 +134,13 @@ export class BundleOperationsComponent extends ComponentEx {
         : [
           ...planBundleMove({
             declaration,
-            newPath: event.newPath,
-            oldPath: event.oldPath
+            newPath: $event.newPath,
+            oldPath: $event.oldPath
           }),
           ...planBundleRename({
             declaration,
-            newPath: event.newPath,
-            oldPath: event.oldPath,
+            newPath: $event.newPath,
+            oldPath: $event.oldPath,
             shouldRenameDependents: declaration.renameDependents
               ?? this.pluginSettingsComponent.settings.shouldRenameDependents
           })
@@ -156,8 +156,8 @@ export class BundleOperationsComponent extends ComponentEx {
       const movedDeclaration = toMovedDeclaration({
         declaration,
         moves,
-        newPath: event.newPath,
-        oldPath: event.oldPath
+        newPath: $event.newPath,
+        oldPath: $event.oldPath
       });
 
       await this.followUnlockedMainPath(declaration.mainPath, movedDeclaration.mainPath);

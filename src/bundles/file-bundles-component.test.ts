@@ -44,8 +44,11 @@ const IMAGE_VIEW_TYPE = 'image';
 const SETTLE_DELAY_IN_MS = 20;
 
 interface MenuItemStub {
+  // eslint-disable-next-line typescript-dev-toolkit/readonly-interface-members -- The menu recorder updates this field when setIcon is called.
   icon: string;
+  // eslint-disable-next-line typescript-dev-toolkit/readonly-interface-members -- The menu recorder updates this field when onClick is called.
   onClick: (this: void) => void;
+  // eslint-disable-next-line typescript-dev-toolkit/readonly-interface-members -- The menu recorder updates this field when setTitle is called.
   title: string;
 }
 

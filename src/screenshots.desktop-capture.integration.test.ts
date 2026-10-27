@@ -59,8 +59,8 @@ import {
  * A File Explorer row, reduced to the collapse toggle the staged tree has to be opened with.
  */
 interface CollapsibleFileItem {
-  collapsed?: boolean;
-  setCollapsed?: (this: void, isCollapsed: boolean) => Promise<void>;
+  readonly collapsed?: boolean;
+  readonly setCollapsed?: (this: void, isCollapsed: boolean) => Promise<void>;
 }
 
 /**
@@ -70,24 +70,24 @@ interface ExplorerReading {
   /**
    * The painted rows the plugin has marked as a bundle's main file, sorted.
    */
-  markedMainNames: string[];
+  readonly markedMainNames: string[];
 
   /**
    * The painted names, joined, so a shot can assert what is and is not on screen.
    */
-  names: string;
+  readonly names: string;
 
   /**
    * How many file rows are painted — the number shot 1's caption quotes.
    */
-  visibleFileCount: number;
+  readonly visibleFileCount: number;
 }
 
 /**
  * The File Explorer view, reduced to its rows.
  */
 interface FileExplorerView {
-  fileItems: Record<string, CollapsibleFileItem>;
+  readonly fileItems: Record<string, CollapsibleFileItem>;
 }
 
 const PLUGIN_ID = 'file-bundles';

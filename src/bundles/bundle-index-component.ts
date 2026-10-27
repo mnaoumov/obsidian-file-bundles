@@ -82,11 +82,11 @@ export interface BundleRenameEvent {
  */
 export class BundleIndexComponent extends LayoutReadyComponent {
   private readonly changeHandlers = new Set<() => void>();
-  private readonly deletionHandlers = new Set<(event: BundleDeleteEvent) => void>();
+  private readonly deletionHandlers = new Set<($event: BundleDeleteEvent) => void>();
   private readonly index: BundleIndex;
   private readonly pathSettings = new PathSettings();
   private readonly pluginSettingsComponent: PluginSettingsComponent;
-  private readonly renameHandlers = new Set<(event: BundleRenameEvent) => void>();
+  private readonly renameHandlers = new Set<($event: BundleRenameEvent) => void>();
 
   /**
    * Creates the component.
@@ -168,7 +168,7 @@ export class BundleIndexComponent extends LayoutReadyComponent {
    *
    * @param handler - The handler.
    */
-  public registerDeleteHandler(handler: (event: BundleDeleteEvent) => void): void {
+  public registerDeleteHandler(handler: ($event: BundleDeleteEvent) => void): void {
     this.deletionHandlers.add(handler);
     this.register(() => {
       this.deletionHandlers.delete(handler);
@@ -184,7 +184,7 @@ export class BundleIndexComponent extends LayoutReadyComponent {
    *
    * @param handler - The handler.
    */
-  public registerRenameHandler(handler: (event: BundleRenameEvent) => void): void {
+  public registerRenameHandler(handler: ($event: BundleRenameEvent) => void): void {
     this.renameHandlers.add(handler);
     this.register(() => {
       this.renameHandlers.delete(handler);

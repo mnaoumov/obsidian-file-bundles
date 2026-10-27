@@ -47,13 +47,13 @@ file-bundles:
 
 Four layers. The bottom three carry all the correctness risk and are unit-testable with no DOM and no `App`.
 
-- `src/bundle-declaration.ts` — parse and write the `file-bundles` key: both link forms, the mandatory `./` / `/` prefix, folder paths vs folder-note links, the implicit-`main` rule. Link handling goes through `@mnaoumov/obsidian-lib/link` (`hasLeadingDot()` / `hasLeadingSlash()`), never a local regex. Folder notes resolve through `@mnaoumov/obsidian-lib`' `resolveFolderNoteConfig({ app })` / `resolveFolderNote` with `FolderNoteLocation.Auto`.
-- `src/bundle-index.ts` — `mainPath` to members, and the reverse `memberPath` to the mains claiming it (a SET, because a shared dependent is the case the delete rule turns on). Pure: no `App`, no events.
-- `src/bundle-index-component.ts` — keeps that index current off `metadataCache.on('changed')` and the vault's create/rename/delete events, and reports a bundle's own file moving or going **before** it updates itself.
-- `src/bundle-operations.ts` — the planners (pure, so every propagation rule is testable without a vault) and the executors, over `@mnaoumov/obsidian-lib`' `VaultTransaction`.
-- `src/bundle-operations-component.ts` — subscribes to those pre-mutation reports and performs the operation.
-- `src/bundle-explorer-component.ts` — display-only hiding in the File Explorer.
-- `src/file-bundles-component.ts` — the commands and the File Explorer menu items.
+- `src/bundles/bundle-declaration.ts` — parse and write the `file-bundles` key: both link forms, the mandatory `./` / `/` prefix, folder paths vs folder-note links, the implicit-`main` rule. Link handling goes through `@mnaoumov/obsidian-lib/link` (`hasLeadingDot()` / `hasLeadingSlash()`), never a local regex. Folder notes resolve through `@mnaoumov/obsidian-lib`' `resolveFolderNoteConfig({ app })` / `resolveFolderNote` with `FolderNoteLocation.Auto`.
+- `src/bundles/bundle-index.ts` — `mainPath` to members, and the reverse `memberPath` to the mains claiming it (a SET, because a shared dependent is the case the delete rule turns on). Pure: no `App`, no events.
+- `src/bundles/bundle-index-component.ts` — keeps that index current off `metadataCache.on('changed')` and the vault's create/rename/delete events, and reports a bundle's own file moving or going **before** it updates itself.
+- `src/bundles/bundle-operations.ts` — the planners (pure, so every propagation rule is testable without a vault) and the executors, over `@mnaoumov/obsidian-lib`' `VaultTransaction`.
+- `src/bundles/bundle-operations-component.ts` — subscribes to those pre-mutation reports and performs the operation.
+- `src/bundles/bundle-explorer-component.ts` — display-only hiding in the File Explorer.
+- `src/bundles/file-bundles-component.ts` — the commands and the File Explorer menu items.
 
 ## The screenshot capture suites
 

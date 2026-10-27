@@ -15,10 +15,10 @@ import {
   vi
 } from 'vitest';
 
-import { BundleExplorerComponent } from './bundle-explorer-component.ts';
-import { BundleIndexComponent } from './bundle-index-component.ts';
-import { BundleOperationsComponent } from './bundle-operations-component.ts';
-import { FileBundlesComponent } from './file-bundles-component.ts';
+import { BundleExplorerComponent } from './bundles/bundle-explorer-component.ts';
+import { BundleIndexComponent } from './bundles/bundle-index-component.ts';
+import { BundleOperationsComponent } from './bundles/bundle-operations-component.ts';
+import { FileBundlesComponent } from './bundles/file-bundles-component.ts';
 import { PluginSettingsComponent } from './plugin-settings-component.ts';
 import { PluginSettingsTab } from './plugin-settings-tab.ts';
 
@@ -71,28 +71,28 @@ vi.mock('./plugin-settings-tab.ts', () => ({
   PluginSettingsTab: vi.fn()
 }));
 
-vi.mock('./bundle-index-component.ts', () => ({
+vi.mock('./bundles/bundle-index-component.ts', () => ({
   // eslint-disable-next-line prefer-arrow-callback, func-names -- mock must be constructable with `new` and return a real loadable Component.
   BundleIndexComponent: vi.fn(function () {
     return new Component();
   })
 }));
 
-vi.mock('./bundle-explorer-component.ts', () => ({
+vi.mock('./bundles/bundle-explorer-component.ts', () => ({
   // eslint-disable-next-line prefer-arrow-callback, func-names -- mock must be constructable with `new` and return a real loadable Component.
   BundleExplorerComponent: vi.fn(function () {
     return new Component();
   })
 }));
 
-vi.mock('./bundle-operations-component.ts', () => ({
+vi.mock('./bundles/bundle-operations-component.ts', () => ({
   // eslint-disable-next-line prefer-arrow-callback, func-names -- mock must be constructable with `new` and return a real loadable Component.
   BundleOperationsComponent: vi.fn(function () {
     return new Component();
   })
 }));
 
-vi.mock('./file-bundles-component.ts', () => ({
+vi.mock('./bundles/file-bundles-component.ts', () => ({
   // eslint-disable-next-line prefer-arrow-callback, func-names -- mock must be constructable with `new` and return a real loadable Component.
   FileBundlesComponent: vi.fn(function () {
     return new Component();

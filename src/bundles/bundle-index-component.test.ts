@@ -13,14 +13,14 @@ import {
   vi
 } from 'vitest';
 
+import type { PluginSettingsComponent } from '../plugin-settings-component.ts';
 import type {
   BundleDeleteEvent,
   BundleRenameEvent
 } from './bundle-index-component.ts';
-import type { PluginSettingsComponent } from './plugin-settings-component.ts';
 
+import { PluginSettings } from '../plugin-settings.ts';
 import { BundleIndexComponent } from './bundle-index-component.ts';
-import { PluginSettings } from './plugin-settings.ts';
 
 /**
  * The subset of `App` the folder-note resolution reads; see the declaration tests for why it has to answer.

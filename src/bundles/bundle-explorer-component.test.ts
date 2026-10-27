@@ -19,17 +19,17 @@ import {
   vi
 } from 'vitest';
 
+import type { PluginSettingsComponent } from '../plugin-settings-component.ts';
 import type { BundleDeclaration } from './bundle-declaration.ts';
 import type { BundleIndexComponent } from './bundle-index-component.ts';
-import type { PluginSettingsComponent } from './plugin-settings-component.ts';
 
+import { PluginSettings } from '../plugin-settings.ts';
 import {
   BundleMemberAnchoring,
   BundleMemberKind
 } from './bundle-declaration.ts';
 import { BundleExplorerComponent } from './bundle-explorer-component.ts';
 import { BundleIndex } from './bundle-index.ts';
-import { PluginSettings } from './plugin-settings.ts';
 
 interface TreeItemElements {
   readonly el: HTMLElement;

@@ -14,9 +14,9 @@ import {
 } from '@mnaoumov/obsidian-lib/vault';
 import { invokeAsyncSafely } from '@mnaoumov/typescript-lib/async';
 
+import type { PluginSettingsComponent } from '../plugin-settings-component.ts';
 import type { BundleDeclaration } from './bundle-declaration.ts';
 import type { BundleIndexComponent } from './bundle-index-component.ts';
-import type { PluginSettingsComponent } from './plugin-settings-component.ts';
 
 import {
   applyBundleCopies,

@@ -8,8 +8,8 @@ import { LayoutReadyComponent } from '@mnaoumov/obsidian-lib/components/layout-r
 import { PathSettings } from '@mnaoumov/obsidian-lib/path-settings';
 import { getMarkdownFilesSorted } from '@mnaoumov/obsidian-lib/vault';
 
+import type { PluginSettingsComponent } from '../plugin-settings-component.ts';
 import type { BundleDeclaration } from './bundle-declaration.ts';
-import type { PluginSettingsComponent } from './plugin-settings-component.ts';
 
 import { parseBundleDeclaration } from './bundle-declaration.ts';
 import { BundleIndex } from './bundle-index.ts';

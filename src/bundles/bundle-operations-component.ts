@@ -3,13 +3,13 @@ import type { App } from 'obsidian';
 import { ComponentEx } from '@mnaoumov/obsidian-lib/components/component-ex';
 import { invokeAsyncSafely } from '@mnaoumov/typescript-lib/async';
 
+import type { PluginSettingsComponent } from '../plugin-settings-component.ts';
 import type { BundleDeclaration } from './bundle-declaration.ts';
 import type {
   BundleDeleteEvent,
   BundleIndexComponent,
   BundleRenameEvent
 } from './bundle-index-component.ts';
-import type { PluginSettingsComponent } from './plugin-settings-component.ts';
 
 import {
   applyBundleMoves,

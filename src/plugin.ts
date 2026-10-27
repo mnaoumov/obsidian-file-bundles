@@ -6,10 +6,10 @@ import { PluginDataHandler } from '@mnaoumov/obsidian-lib/data-handler';
 import { PluginBase } from '@mnaoumov/obsidian-lib/plugin/plugin';
 import { PluginEventSourceImpl } from '@mnaoumov/obsidian-lib/plugin/plugin-event-source';
 
-import { BundleExplorerComponent } from './bundle-explorer-component.ts';
-import { BundleIndexComponent } from './bundle-index-component.ts';
-import { BundleOperationsComponent } from './bundle-operations-component.ts';
-import { FileBundlesComponent } from './file-bundles-component.ts';
+import { BundleExplorerComponent } from './bundles/bundle-explorer-component.ts';
+import { BundleIndexComponent } from './bundles/bundle-index-component.ts';
+import { BundleOperationsComponent } from './bundles/bundle-operations-component.ts';
+import { FileBundlesComponent } from './bundles/file-bundles-component.ts';
 import { PluginSettingsComponent } from './plugin-settings-component.ts';
 import { PluginSettingsTab } from './plugin-settings-tab.ts';
 

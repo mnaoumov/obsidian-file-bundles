@@ -3,8 +3,8 @@ import type { App } from 'obsidian';
 
 import { LayoutReadyComponent } from '@mnaoumov/obsidian-lib/components/layout-ready-component';
 
+import type { PluginSettingsComponent } from '../plugin-settings-component.ts';
 import type { BundleIndexComponent } from './bundle-index-component.ts';
-import type { PluginSettingsComponent } from './plugin-settings-component.ts';
 
 /**
  * Parameters for the {@link BundleExplorerComponent} constructor.

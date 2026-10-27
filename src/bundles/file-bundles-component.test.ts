@@ -27,17 +27,17 @@ import {
   vi
 } from 'vitest';
 
+import type { PluginSettingsComponent } from '../plugin-settings-component.ts';
 import type { BundleDeclaration } from './bundle-declaration.ts';
 import type { BundleIndexComponent } from './bundle-index-component.ts';
-import type { PluginSettingsComponent } from './plugin-settings-component.ts';
 
+import { PluginSettings } from '../plugin-settings.ts';
 import {
   BundleMemberAnchoring,
   BundleMemberKind
 } from './bundle-declaration.ts';
 import { BundleIndex } from './bundle-index.ts';
 import { FileBundlesComponent } from './file-bundles-component.ts';
-import { PluginSettings } from './plugin-settings.ts';
 
 const IMAGE_EXTENSIONS = ['jpg', 'png'];
 const IMAGE_VIEW_TYPE = 'image';

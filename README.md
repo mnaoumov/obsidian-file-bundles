@@ -40,71 +40,37 @@ A copy of the vault ships with every release. You can access it via any of the f
 
 ## What it does
 
-**The dependency is declared, not inferred from a naming convention.** Every existing plugin in this space recognizes a bundle by where a file sits or what it is called — a note and its same-named attachment folder, a sidecar named after the file beside it. That works until the two things you want bundled do not share a name or a folder. Here you say which files belong together, in the main file's own frontmatter, and nothing depends on what they are called.
-
-**It is not limited to notes.** An HTML file, a PDF or an image can be the main file of a bundle. Those cannot carry frontmatter, so they get a small sidecar note that declares the bundle on their behalf — the declaration is marked by the frontmatter key, never by the file name, so that note is an ordinary note you can also write in.
-
-**A bundle is locked by default.** Its dependents are hidden in the File Explorer, leaving only the main file, and moving, renaming or deleting the main file carries them along. Unlock it and the pieces go back to being independent files. The hiding is display only: the dependents stay in your vault index and stay resolvable as link targets, which is what separates a locked bundle from an excluded folder.
-
-**A file that two bundles both declare is never deleted with one of them.**
+- **A bundle is declared, not inferred from a naming convention.** A `file-bundles` key in the main file's own frontmatter says which files and folders belong with it, whatever they are called: see [Declaring a bundle](<./demo-vault/02 Declaring a bundle.md>).
+- **Any file can be a main file.** An HTML file, a PDF or an image gets a sidecar note that declares the bundle on its behalf: see [Bundles](<./demo-vault/01 Bundles.md>).
+- **A locked bundle moves, renames and deletes as one.** Its dependents are hidden in the File Explorer (display only, so they stay linkable) and follow the main file wherever you drag it; unlocking splits them back into independent files: see [Locking and unlocking](<./demo-vault/04 Locking and unlocking.md>).
+- **A bundle duplicates as one.** The copy gets its own dependents and a declaration that names them, unlike Obsidian's **Make a copy**: see [Bundles](<./demo-vault/01 Bundles.md>).
+- **A shared file is never deleted with one of the bundles declaring it.**
+- **Settings** choose the frontmatter key, excluded paths, and what a locked bundle does: see [Settings](<./demo-vault/03 Settings.md>).
 
 ## Declaring a bundle
 
-A markdown file declares its own bundle inline:
-
 ```yaml
 ---
 file-bundles:
-  files:
-    - "[[./assets/diagram.png]]"
-    - "[[/shared/logo.png]]"
-  folders:
-    - ./assets
----
-```
-
-A file that cannot carry frontmatter gets a sidecar note that names it:
-
-```yaml
----
-file-bundles:
-  main: "[[./report.html]]"
+  main: "[[./report.html]]"   # omit when this note is itself the main file
   files:
     - "[[./report-styles.css]]"
+    - "[[/shared/logo.png]]"
   folders:
     - ./report-images
 ---
 ```
 
-- `main`
-  - The file the bundle is built around. Omit it and the declaring note is itself the main file.
-- `files`
-  - Links to the files that travel with it, as wikilinks or as markdown links.
-- `folders`
-  - Folders that travel with it, as paths — or as a link to a folder note, meaning that note's folder.
-
-**Every path is explicitly relative (`./assets`) or explicitly rooted (`/shared/brand`).** A sidecar can live anywhere, so a bare `assets` would be ambiguous between the declaring file and the vault root, and this plugin would rather reject it than guess.
-
-**The vault itself is never a member.** A bundle is a file plus what travels with it, so an entry that names the whole vault — `/`, or `./` written in a note at the top of the vault — is rejected, as is one that climbs above it. Everything else is taken at its word, trailing slash and all: `/shared/brand/` means the folder `shared/brand`.
-
-The two forms mean different things when the main file moves: a relative member is anchored to the main file and travels with it, while a rooted member states a home of its own and stays put. That is what makes a shared logo shareable.
-
-The main file and the note that declares the bundle are always members. You never list them.
+Every path is explicitly relative (`./`, travels with the main file) or rooted (`/`, stays put). The keys and rules are in [Declaring a bundle](<./demo-vault/02 Declaring a bundle.md>).
 
 ## Usage
 
-Four commands, and the locking and deleting ones on the File Explorer's context menu for any file a bundle claims:
+Moving and renaming need no command: a bundle follows its main file. Four commands cover the rest, with locking and deleting also on the File Explorer's context menu:
 
 - **`File Bundles`: Show the bundle the active file belongs to**
-  - reports what travels with the file you are looking at, whether it is a main file, the note declaring one, or one of the dependents.
 - **`File Bundles`: Lock or unlock the bundle the active file belongs to**
-  - unlocking reveals the dependents and stops anything propagating; locking again restores both. Your note is never edited either way.
 - **`File Bundles`: Delete the bundle the active file belongs to**
-  - deletes the main file and everything the declaration names, except anything another bundle also claims.
 - **`File Bundles`: Duplicate the bundle the active file belongs to**
-  - copies the main file, the note declaring it, and every dependent anchored to it with `./`, then writes the copy's own declaration so the duplicate names its own files. A rooted `/…` member is shared rather than copied — it states a home of its own, so both bundles point at it. Use this rather than Obsidian's own **Make a copy**, which copies the main file alone and leaves the copy claiming the original's dependents.
-
-Moving and renaming need no command: a bundle follows its main file wherever you drag it.
 
 ## Similar plugins
 

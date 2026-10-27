@@ -48,6 +48,8 @@ The main file and the note that declares the bundle are always members. You neve
 
 Every path is either explicitly relative (`./Trip assets`, or `../Elsewhere/Route.svg` when it has to climb out of the note's folder) or explicitly rooted at the vault (`/Shared/Brand`). A bare `Trip assets` is rejected rather than guessed at: a sidecar can live anywhere, so it would be ambiguous between the note's own folder and the vault root, and Obsidian's shortest-path link resolution would silently pick one.
 
+**The vault itself is never a member.** A bundle is a file plus what travels with it, so an entry that names the whole vault — `/`, or `./` written in a note at the top of the vault — is rejected, as is one that climbs above it. Everything else is taken at its word, trailing slash and all: `/Shared/Brand/` means the folder `Shared/Brand`.
+
 **The two forms mean different things when the main file moves.** A relative member is anchored to the main file and travels with it. A rooted member states a home of its own and stays where it is — which is what you want for a shared logo that several bundles point at.
 
 ## Why links, and who keeps them correct

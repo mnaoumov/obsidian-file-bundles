@@ -72,15 +72,19 @@ Moving and renaming need no command: a bundle follows its main file. Four comman
 - **`File Bundles`: Delete the bundle the active file belongs to**
 - **`File Bundles`: Duplicate the bundle the active file belongs to**
 
-## Similar plugins
+## See also
 
-- [`Documents Bundle`](https://community.obsidian.md/plugins/documents-bundle) — turns a note into a folder with an `assets/` folder beside it, saves pasted and dropped files there and keeps the folder's name in step with the note; this plugin has no folder convention and does not capture new attachments, but bundles whatever files and folders a declaration names, wherever they sit.
-- [`Sidecars`](https://github.com/awesym/obsidian-sidecars) (not in the community directory) — creates and manages a companion note named after each attachment, cleans up orphaned ones and can dim or hide them in the File Explorer; this plugin pairs files by a declaration rather than by name, and one bundle can hold any number of files and folders.
-- [`Media Sidecar Tools`](https://community.obsidian.md/plugins/media-sidecar-tools) — creates a sidecar note for a media file on Ctrl+Click and can hide the media in the File Explorer; this plugin creates no notes, and groups declared files and folders that move, rename, duplicate and delete together.
-- [`Att Meta Map`](https://community.obsidian.md/plugins/att-meta-map) — creates companion notes for PDFs and other attachments, fills their properties from file metadata and links several resources to one note through a `source` property; this plugin fills no metadata, and instead carries a bundle's files through file operations and hides them while it is locked.
-- [`Depends`](https://community.obsidian.md/plugins/depends) — declares dependencies between notes in frontmatter and writes them as links for the graph view; this plugin's declaration acts on the files themselves, moving and deleting them with their main file.
-- [`Nested Notes`](https://community.obsidian.md/plugins/nested-notes) — nests notes under other notes in its own view by drag and drop; this plugin keeps the File Explorer and changes only which rows it shows, with the grouping coming from a declaration.
-- [`Custom Attachment Location`](https://community.obsidian.md/plugins/custom-attachment-location) — decides where a note's attachments are stored and keeps that folder in step with the note; it handles one fixed relation, a note and its attachment folder, while this plugin lets any file declare any set of files and folders that belong with it.
+[My other Obsidian resources](https://github.com/mnaoumov/obsidian-resources)
+
+| Plugin | Features | How `File Bundles` differs |
+| --- | --- | --- |
+| [`Att Meta Map`](https://community.obsidian.md/plugins/att-meta-map) | Attachment companion notes; file-metadata properties; source-property mapping | Different scope: bundle file operations and locked visibility; no metadata extraction |
+| [`Custom Attachment Location`](https://community.obsidian.md/plugins/obsidian-custom-attachment-location) (my plugin) | Per-note attachment destination; folder follows note | Broader grouping: any file can declare any set of files/folders |
+| [`Depends`](https://community.obsidian.md/plugins/depends) | Frontmatter note dependencies; graph links | Different effect: moves and deletes the declared files themselves |
+| [`Documents Bundle`](https://community.obsidian.md/plugins/documents-bundle) | Note-as-folder bundles; assets directory; captures attachments; folder follows note | Broader grouping: arbitrary declared files/folders; no fixed layout or new-attachment capture |
+| [`Media Sidecar Tools`](https://community.obsidian.md/plugins/media-sidecar-tools) | Ctrl-click media sidecars; optional explorer hiding | Different grouping: declares existing files; no note creation; file operations act on the group |
+| [`Nested Notes`](https://community.obsidian.md/plugins/nested-notes) | Drag-and-drop note nesting in a dedicated view | Alternative UI: keeps File Explorer; declared grouping controls its rows |
+| [`Sidecars`](https://github.com/awesym/obsidian-sidecars) | Unlisted; companion notes for attachments; orphan cleanup; explorer hiding | Alternative grouping: declarations, not matching names; any number of files/folders |
 
 Last searched for similar plugins on 2026-10-26.
 
@@ -117,10 +121,6 @@ Contributions are welcome — see [CONTRIBUTING](./CONTRIBUTING.md) to get set u
 <a href="https://www.buymeacoffee.com/mnaoumov" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me A Coffee" height="60" width="217"></a>
 
 <!-- markdownlint-enable MD033 -->
-
-## My other Obsidian resources
-
-[See my other Obsidian resources](https://github.com/mnaoumov/obsidian-resources).
 
 ## License
 

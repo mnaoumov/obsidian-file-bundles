@@ -1,3 +1,4 @@
+import dedent from 'dedent';
 import { evalInObsidian } from 'obsidian-integration-testing';
 import { getTemporaryVault } from 'obsidian-integration-testing/vitest-global-setup-plugin';
 import {
@@ -6,17 +7,16 @@ import {
   it
 } from 'vitest';
 
-const MAIN_CONTENT = [
-  '---',
-  'file-bundles:',
-  '  files:',
-  '    - "[[./assets/diagram.png]]"',
-  '    - "[[/DuplicateTestShared/logo.png]]"',
-  '---',
-  '',
-  'The main file.',
-  ''
-].join('\n');
+const MAIN_CONTENT = dedent`
+  ---
+  file-bundles:
+    files:
+      - "[[./assets/diagram.png]]"
+      - "[[/DuplicateTestShared/logo.png]]"
+  ---
+
+  The main file.\n
+`;
 
 /*
  * A PNG signature followed by bytes no text encoding round-trips. This is the whole point of the suite: the
@@ -30,17 +30,16 @@ const MEMBER_BYTES = [137, 80, 78, 71, 13, 10, 26, 10, 0, 128, 254, 255];
  * Obsidian will not open an HTML file, so the sidecar is the only half of the pair that can ever be the
  * active file — which is why the command has to find the bundle from it.
  */
-const SIDECAR_CONTENT = [
-  '---',
-  'file-bundles:',
-  '  main: "[[./report.html]]"',
-  '  files:',
-  '    - "[[./report-styles.css]]"',
-  '---',
-  '',
-  'The sidecar note for `report.html`.',
-  ''
-].join('\n');
+const SIDECAR_CONTENT = dedent`
+  ---
+  file-bundles:
+    main: "[[./report.html]]"
+    files:
+      - "[[./report-styles.css]]"
+  ---
+
+  The sidecar note for \`report.html\`.\n
+`;
 
 const PLUGIN_ID = 'file-bundles';
 const TEST_TIMEOUT_IN_MS = 120_000;

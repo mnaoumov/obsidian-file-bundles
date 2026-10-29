@@ -1,3 +1,4 @@
+import dedent from 'dedent';
 import { evalInObsidian } from 'obsidian-integration-testing';
 import { getTemporaryVault } from 'obsidian-integration-testing/vitest-global-setup-plugin';
 import {
@@ -6,28 +7,26 @@ import {
   it
 } from 'vitest';
 
-const ALPHA_CONTENT = [
-  '---',
-  'file-bundles:',
-  '  files:',
-  '    - "[[./assets/diagram.png]]"',
-  '    - "[[/DeleteTestShared/logo.png]]"',
-  '---',
-  '',
-  'Alpha.',
-  ''
-].join('\n');
+const ALPHA_CONTENT = dedent`
+  ---
+  file-bundles:
+    files:
+      - "[[./assets/diagram.png]]"
+      - "[[/DeleteTestShared/logo.png]]"
+  ---
 
-const BETA_CONTENT = [
-  '---',
-  'file-bundles:',
-  '  files:',
-  '    - "[[/DeleteTestShared/logo.png]]"',
-  '---',
-  '',
-  'Beta.',
-  ''
-].join('\n');
+  Alpha.\n
+`;
+
+const BETA_CONTENT = dedent`
+  ---
+  file-bundles:
+    files:
+      - "[[/DeleteTestShared/logo.png]]"
+  ---
+
+  Beta.\n
+`;
 
 describe('Deleting a bundle', () => {
   it('should take its own dependents and spare the one another bundle also declares', async () => {

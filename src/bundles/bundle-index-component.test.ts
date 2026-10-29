@@ -4,6 +4,7 @@ import type { TFile } from 'obsidian-test-mocks/obsidian';
 import { sleep } from '@mnaoumov/typescript-lib/async';
 import { castTo } from '@mnaoumov/typescript-lib/object-utils';
 import { strictProxy } from '@mnaoumov/typescript-test-toolkit/strict-proxy';
+import dedent from 'dedent';
 import { App } from 'obsidian-test-mocks/obsidian';
 import {
   beforeEach,
@@ -25,18 +26,17 @@ import { BundleIndexComponent } from './bundle-index-component.ts';
 /**
  * The subset of `App` the folder-note resolution reads; see the declaration tests for why it has to answer.
  */
-const ALPHA_CONTENT = [
-  '---',
-  'file-bundles:',
-  '  files:',
-  '    - "[[./assets/diagram.png]]"',
-  '  folders:',
-  '    - ./assets',
-  '---',
-  '',
-  'Alpha.',
-  ''
-].join('\n');
+const ALPHA_CONTENT = dedent`
+  ---
+  file-bundles:
+    files:
+      - "[[./assets/diagram.png]]"
+    folders:
+      - ./assets
+  ---
+
+  Alpha.\n
+`;
 
 const ALPHA_PATH = 'Alpha/alpha.md';
 const LAYOUT_READY_DELAY_IN_MS = 10;
@@ -249,16 +249,15 @@ describe('BundleIndexComponent', () => {
       app.vault.createFolderSync__('Alpha/assets');
       createNote(
         ALPHA_PATH,
-        [
-          '---',
-          'file-bundles:',
-          '  files:',
-          '    - "[[/Shared/logo.png]]"',
-          '  folders:',
-          '    - ./assets',
-          '---',
-          ''
-        ].join('\n')
+        dedent`
+          ---
+          file-bundles:
+            files:
+              - "[[/Shared/logo.png]]"
+            folders:
+              - ./assets
+          ---\n
+        `
       );
       const component = await createComponent();
 

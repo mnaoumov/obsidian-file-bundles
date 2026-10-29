@@ -288,6 +288,7 @@ beforeAll(async () => {
       // generated `temp-vault-XXXXXX` name — private-looking data that belongs in no listing. Hidden
       // rather than renamed, because the name is the harness's to choose, not this suite's. Both
       // selectors: the switcher was rebuilt between Obsidian versions and each ships one.
+      // eslint-disable-next-line typescript-dev-toolkit/prefer-dedent -- This callback is serialized into Obsidian, where the dedent import is not in scope.
       style.textContent = [
         '.workspace-drawer-vault-switcher, .workspace-drawer-header-switcher { visibility: hidden; }',
         // A notice is a full-width band across the TOP of a phone screen, and every frame here follows a

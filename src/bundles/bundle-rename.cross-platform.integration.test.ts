@@ -15,6 +15,7 @@
 // Imported under a different name on purpose: a module-scope `sleep` shadows the Obsidian runtime global
 // that a serialized closure would otherwise reach for, and the failure is an opaque `ReferenceError` from
 // inside the closure rather than anything naming this import.
+import dedent from 'dedent';
 import { setTimeout as sleepInNode } from 'node:timers/promises';
 import {
   evalInObsidian,
@@ -27,28 +28,26 @@ import {
   it
 } from 'vitest';
 
-const KEEPING_CONTENT = [
-  '---',
-  'file-bundles:',
-  '  files:',
-  '    - "[[./keeping.png]]"',
-  '---',
-  '',
-  'Dependents keep their own names here.',
-  ''
-].join('\n');
+const KEEPING_CONTENT = dedent`
+  ---
+  file-bundles:
+    files:
+      - "[[./keeping.png]]"
+  ---
 
-const FOLLOWING_CONTENT = [
-  '---',
-  'file-bundles:',
-  '  files:',
-  '    - "[[./following.png]]"',
-  '  renameDependents: true',
-  '---',
-  '',
-  'Dependents follow the name here.',
-  ''
-].join('\n');
+  Dependents keep their own names here.\n
+`;
+
+const FOLLOWING_CONTENT = dedent`
+  ---
+  file-bundles:
+    files:
+      - "[[./following.png]]"
+    renameDependents: true
+  ---
+
+  Dependents follow the name here.\n
+`;
 
 const SETTLE_DELAY_IN_MS = 2000;
 const TEST_TIMEOUT_IN_MS = 120_000;

@@ -16,6 +16,7 @@
 // Imported under a different name on purpose: a module-scope `sleep` shadows the Obsidian runtime global
 // that a serialized closure would otherwise reach for, and the failure is an opaque `ReferenceError` from
 // inside the closure rather than anything naming this import.
+import dedent from 'dedent';
 import { setTimeout as sleepInNode } from 'node:timers/promises';
 import {
   evalInObsidian,
@@ -28,16 +29,15 @@ import {
   it
 } from 'vitest';
 
-const MAIN_CONTENT = [
-  '---',
-  'file-bundles:',
-  '  files:',
-  '    - "[[./assets/diagram.png]]"',
-  '---',
-  '',
-  'The main file.',
-  ''
-].join('\n');
+const MAIN_CONTENT = dedent`
+  ---
+  file-bundles:
+    files:
+      - "[[./assets/diagram.png]]"
+  ---
+
+  The main file.\n
+`;
 
 const PLUGIN_ID = 'file-bundles';
 const SETTLE_DELAY_IN_MS = 1500;

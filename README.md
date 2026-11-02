@@ -74,7 +74,7 @@ Moving and renaming need no command: a bundle follows its main file. Four comman
 
 ## See also
 
-[My other Obsidian resources](https://github.com/mnaoumov/obsidian-resources)
+[My other Obsidian resources](https://mnaoumov.dev/obsidian/)
 
 | Plugin | Features | How `File Bundles` differs |
 | --- | --- | --- |

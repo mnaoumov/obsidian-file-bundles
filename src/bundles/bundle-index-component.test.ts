@@ -99,16 +99,16 @@ describe('BundleIndexComponent', () => {
     return file;
   }
 
-  async function modifyNote(path: string, content: string): Promise<void> {
-    await app.vault.modify(ensureFile(path), content);
+  async function modifyAlpha(content: string): Promise<void> {
+    await app.vault.modify(ensureFile(ALPHA_PATH), content);
   }
 
-  async function renameFolder(oldPath: string, newPath: string): Promise<void> {
-    const folder = app.vault.getFolderByPath(oldPath);
+  async function renameAlphaAssets(): Promise<void> {
+    const folder = app.vault.getFolderByPath('Alpha/assets');
     if (!folder) {
-      throw new Error(`The test vault has no ${oldPath}`);
+      throw new Error('The test vault has no Alpha/assets');
     }
-    await app.vault.rename(folder, newPath);
+    await app.vault.rename(folder, 'Alpha/renamed-assets');
   }
 
   describe('the initial read', () => {
@@ -161,7 +161,7 @@ describe('BundleIndexComponent', () => {
       const component = await createComponent();
       expect(component.getIndex().getDeclarations()).toEqual([]);
 
-      await modifyNote(ALPHA_PATH, ALPHA_CONTENT);
+      await modifyAlpha(ALPHA_CONTENT);
 
       expect(component.getIndex().getDeclarations()).toHaveLength(1);
     });
@@ -171,7 +171,7 @@ describe('BundleIndexComponent', () => {
       const component = await createComponent();
       expect(component.getIndex().getDeclarations()).toHaveLength(1);
 
-      await modifyNote(ALPHA_PATH, PLAIN_CONTENT);
+      await modifyAlpha(PLAIN_CONTENT);
 
       expect(component.getIndex().getDeclarations()).toEqual([]);
     });
@@ -222,7 +222,7 @@ describe('BundleIndexComponent', () => {
       const component = await createComponent();
       expect(component.getIndex().getDeclarationsOfMember('Alpha/assets/diagram.png')).toHaveLength(1);
 
-      await renameFolder('Alpha/assets', 'Alpha/renamed-assets');
+      await renameAlphaAssets();
 
       expect(component.getIndex().getDeclaration(ALPHA_PATH)?.members.map((member) => member.path))
         .toEqual(['Alpha/renamed-assets/diagram.png', 'Alpha/renamed-assets']);
@@ -239,7 +239,7 @@ describe('BundleIndexComponent', () => {
       createNote('Beta/beta.md', ALPHA_CONTENT);
       const component = await createComponent();
 
-      await renameFolder('Alpha/assets', 'Alpha/renamed-assets');
+      await renameAlphaAssets();
 
       expect(component.getIndex().getDeclaration('Beta/beta.md')?.members.map((member) => member.path))
         .toEqual(['Beta/assets/diagram.png', 'Beta/assets']);
@@ -261,7 +261,7 @@ describe('BundleIndexComponent', () => {
       );
       const component = await createComponent();
 
-      await renameFolder('Alpha/assets', 'Alpha/renamed-assets');
+      await renameAlphaAssets();
 
       expect(component.getIndex().getDeclaration(ALPHA_PATH)?.members.map((member) => member.path))
         .toEqual(['Shared/logo.png', 'Alpha/renamed-assets']);

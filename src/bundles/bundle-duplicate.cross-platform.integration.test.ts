@@ -82,20 +82,20 @@ describe('Duplicating a bundle', () => {
           }
         }
 
-        async function createBinary(path: string, bytes: number[]): Promise<void> {
+        async function createMemberBinary(path: string): Promise<void> {
           const slashIndex = path.lastIndexOf('/');
           if (slashIndex > 0) {
             await ensureFolder(path.slice(0, slashIndex));
           }
           try {
-            await app.vault.createBinary(path, new Uint8Array(bytes).buffer);
+            await app.vault.createBinary(path, new Uint8Array(memberBytes).buffer);
           } catch {
             // Already there.
           }
         }
 
-        await createBinary('DuplicateTestShared/logo.png', memberBytes);
-        await createBinary('DuplicateTest/assets/diagram.png', memberBytes);
+        await createMemberBinary('DuplicateTestShared/logo.png');
+        await createMemberBinary('DuplicateTest/assets/diagram.png');
         await create('DuplicateTest/main.md', mainContent);
 
         await lib.waitUntil({

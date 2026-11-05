@@ -97,7 +97,7 @@ describe('Unlocking a bundle', () => {
     await sleepInNode(SETTLE_DELAY_IN_MS);
 
     // Unlock through the real command, on the real active file, the way a user would.
-    await toggleLock(vaultPath, 'LockTest/main.md');
+    await toggleLock(vaultPath);
 
     /*
      * Moving an unlocked bundle: the main file goes and the dependent does not, so the main arriving at its
@@ -155,7 +155,7 @@ describe('Unlocking a bundle', () => {
 
     await sleepInNode(SETTLE_DELAY_IN_MS);
 
-    await toggleLock(vaultPath, 'LockTest/main.md');
+    await toggleLock(vaultPath);
 
     const isDependentFollowedWhenLocked = await pollInObsidian({
       poll({ app }): boolean {
@@ -185,7 +185,7 @@ describe('Unlocking a bundle', () => {
 });
 
 /**
- * Runs the plugin's toggle-lock command on a note, the way a user does: the note is made the active file
+ * Runs the plugin's toggle-lock command on the staged main note, the way a user does: the note is made the active file
  * first, because the command reads the active file rather than taking a path.
  *
  * Its own round trip, followed by a Node-side settle. The command is fire-and-forget — `executeCommandById`
@@ -193,9 +193,8 @@ describe('Unlocking a bundle', () => {
  * poll for, only the propagation of the NEXT operation.
  *
  * @param vaultPath - The vault to evaluate against.
- * @param notePath - Vault-relative path of the note to toggle the lock on.
  */
-async function toggleLock(vaultPath: string, notePath: string): Promise<void> {
+async function toggleLock(vaultPath: string): Promise<void> {
   await evalInObsidian({
     async callback({ app, notePath: path, PLUGIN_ID: pluginId }) {
       const file = app.vault.getFileByPath(path);
@@ -207,7 +206,7 @@ async function toggleLock(vaultPath: string, notePath: string): Promise<void> {
       app.commands.executeCommandById(`${pluginId}:toggle-lock`);
     },
     input: {
-      notePath,
+      notePath: 'LockTest/main.md',
       PLUGIN_ID
     },
     vaultPath

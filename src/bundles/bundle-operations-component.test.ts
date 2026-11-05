@@ -105,10 +105,10 @@ describe('BundleOperationsComponent', () => {
     app.vault.createSync__(path, content);
   }
 
-  function readFile(path: string): string {
-    const file = app.vault.getFileByPath(path);
+  function readMovedMain(): string {
+    const file = app.vault.getFileByPath('Beta/alpha.md');
     if (!file) {
-      throw new Error(`The test vault has no ${path}`);
+      throw new Error('The test vault has no Beta/alpha.md');
     }
     return app.vault.readSync__(file);
   }
@@ -172,7 +172,7 @@ describe('BundleOperationsComponent', () => {
         oldPath: ALPHA_PATH
       });
 
-      expect(readFile('Beta/alpha.md')).toContain('[[./assets/diagram.png]]');
+      expect(readMovedMain()).toContain('[[./assets/diagram.png]]');
     });
 
     it('should move nothing for an unlocked bundle', async () => {
@@ -203,7 +203,7 @@ describe('BundleOperationsComponent', () => {
         oldPath: ALPHA_PATH
       });
 
-      expect(readFile('Beta/alpha.md')).toContain('/Shared/logo.png');
+      expect(readMovedMain()).toContain('/Shared/logo.png');
     });
 
     /*

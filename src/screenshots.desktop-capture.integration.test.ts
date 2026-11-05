@@ -383,7 +383,7 @@ describe('desktop store screenshots', () => {
 
   it('2 - unlocking puts the dependents back', async () => {
     await openNote(TRIP_NOTE_PATH);
-    await runCommand('toggle-lock');
+    await runToggleLockCommand();
 
     const { names } = await readExplorer();
 
@@ -421,7 +421,7 @@ describe('desktop store screenshots', () => {
     // with its members left behind. Waited on rather than slept through, because locking is a SETTING
     // and the next command can otherwise still run against the unlocked state.
     await openNote(TRIP_NOTE_PATH);
-    await runCommand('toggle-lock');
+    await runToggleLockCommand();
     await waitForDependentsHidden();
 
     const paths = await moveTripNote();
@@ -433,7 +433,7 @@ describe('desktop store screenshots', () => {
     // Unlocked again for the frame itself: the move is the claim, and a locked bundle would show a single
     // row under `Archive/` with nothing to prove the rest came too.
     await openNote(MOVED_TRIP_NOTE_PATH);
-    await runCommand('toggle-lock');
+    await runToggleLockCommand();
 
     const { names } = await readExplorer();
     expect(names).toContain(ARCHIVE_FOLDER);
@@ -647,11 +647,9 @@ async function readVaultPaths(): Promise<string[]> {
 }
 
 /**
- * Runs one of the plugin's commands against the active file.
- *
- * @param commandId - The command's id, without the plugin prefix.
+ * Runs the plugin's toggle-lock command against the active file.
  */
-async function runCommand(commandId: string): Promise<void> {
+async function runToggleLockCommand(): Promise<void> {
   await evalInObsidian({
     callback({ app, commandId: id, pluginId }) {
       // `executeCommandById` returns false silently when the id is wrong, which reads from outside as a
@@ -660,7 +658,7 @@ async function runCommand(commandId: string): Promise<void> {
         throw new Error(`The command did not run: ${pluginId}:${id}`);
       }
     },
-    input: { commandId, pluginId: PLUGIN_ID },
+    input: { commandId: 'toggle-lock', pluginId: PLUGIN_ID },
     vaultPath: vaultPath()
   });
 

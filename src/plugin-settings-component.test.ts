@@ -14,8 +14,6 @@ import {
 import { PluginSettingsComponent } from './plugin-settings-component.ts';
 import { PluginSettings } from './plugin-settings.ts';
 
-type PathsValidator = (paths: string[]) => string | undefined;
-
 interface ProtectedBase {
   readonly registerValidator: (key: string, validator: unknown) => void;
   readonly registerValidators: () => void;
@@ -47,6 +45,8 @@ describe('PluginSettingsComponent', () => {
   });
 
   describe('registerValidators', () => {
+    type PathsValidator = (paths: string[]) => string | undefined;
+
     function getRegisteredValidators(): RegisteredValidator[] {
       const registered: RegisteredValidator[] = [];
       const registerValidatorSpy = vi.spyOn(protectedBasePrototype, 'registerValidator')

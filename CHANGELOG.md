@@ -6,9 +6,9 @@
 - feat: add a Report a bug command
 - docs: add issue-filing instructions for AI agents
 - chore(github): give the bug form the field ids bug-report links prefill
-- build(deps): bump typescript-dev-toolkit to ^5.4.2 and obsidian-dev-toolkit to ^7.4.0
+- build(deps): bump `typescript-dev-toolkit` to ^5.4.2 and `obsidian-dev-toolkit` to ^7.4.0
 - build(deps): override re2js to ^2.9.1 for GHSA-gg6h-894w-4m9c
-- build(deps): bump typescript-dev-toolkit to ^5.2.0 and apply prefer-dedent
+- build(deps): bump `typescript-dev-toolkit` to ^5.2.0 and apply prefer-dedent
 - build(deps): bump @mnaoumov/typescript-dev-toolkit to ^5.1.0
 - chore(deps): refresh vulnerable development dependencies
 - chore: adopt shared keyword identifier rule
@@ -22,9 +22,9 @@
 
 ## 3.0.0
 
-- build(deps)!: move to obsidian-lib 6 and obsidian-dev-toolkit 5
+- build(deps)!: move to `obsidian-lib` 6 and `obsidian-dev-toolkit` 5
 - docs: shorten the debugging section
-- chore: replace leftover obsidian-dev-utils references with @mnaoumov/obsidian-lib
+- chore: replace leftover `obsidian-dev-utils` references with @mnaoumov/obsidian-lib
 - docs(readme): lead the Debugging section with `Advanced Debug Mode`
 - docs(agents): record the 2.0.0 release and why it is a major
 

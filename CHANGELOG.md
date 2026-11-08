@@ -2,31 +2,34 @@
 
 ## 3.1.0
 
-- docs(readme): point bug reports at the Report a bug command
-- feat: add a Report a bug command
-- docs: add issue-filing instructions for AI agents
-- chore(github): give the bug form the field ids bug-report links prefill
-- build(deps): bump `typescript-dev-toolkit` to ^5.4.2 and `obsidian-dev-toolkit` to ^7.4.0
-- build(deps): override re2js to ^2.9.1 for GHSA-gg6h-894w-4m9c
-- build(deps): bump `typescript-dev-toolkit` to ^5.2.0 and apply prefer-dedent
-- build(deps): bump @mnaoumov/typescript-dev-toolkit to ^5.1.0
-- chore(deps): refresh vulnerable development dependencies
-- chore: adopt shared keyword identifier rule
-- refactor: adopt readonly interface members
-- docs(readme): combine related resources and plugin comparisons
-- refactor: group bundle feature in its own folder
-- docs(readme): cut the README to a landing page, reference lives in the demo vault
-- docs(readme): add a Similar plugins section from a prior-art search
-- test: give the first rewriteBundleDeclaration case room for its cold start
-- docs(agents): record the 3.0.0 release and why it is a major
+This release has 1 new feature and 6 documentation changes. 10 maintenance commits (tests, build, CI, refactoring, dependencies) are not listed.
+
+### New
+
+- add a Report a bug command
+
+### Documentation
+
+- **readme:** point bug reports at the Report a bug command
+- add issue-filing instructions for AI agents
+- **readme:** combine related resources and plugin comparisons
+- **readme:** cut the README to a landing page, reference lives in the demo vault
+- **readme:** add a Similar plugins section from a prior-art search
+- **agents:** record the 3.0.0 release and why it is a major
 
 ## 3.0.0
 
-- build(deps)!: move to `obsidian-lib` 6 and `obsidian-dev-toolkit` 5
-- docs: shorten the debugging section
-- chore: replace leftover `obsidian-dev-utils` references with @mnaoumov/obsidian-lib
-- docs(readme): lead the Debugging section with `Advanced Debug Mode`
-- docs(agents): record the 2.0.0 release and why it is a major
+This release has 1 breaking change and 3 documentation changes. 1 maintenance commit (tests, build, CI, refactoring, dependencies) is not listed.
+
+### Breaking changes
+
+- **deps:** move to `obsidian-lib` 6 and `obsidian-dev-toolkit` 5
+
+### Documentation
+
+- shorten the debugging section
+- **readme:** lead the Debugging section with `Advanced Debug Mode`
+- **agents:** record the 2.0.0 release and why it is a major
 
 ## 2.0.0
 

@@ -14,6 +14,20 @@
     "2026-10-21). Add a braces override once a patched release exists."
   ],
   "pins": {
+    "@microsoft/eslint-plugin-sdl": {
+      "section": "overrides",
+      "why": "Scoped override: forces eslint-plugin-n ^17.24.0 under @microsoft/eslint-plugin-sdl only, to clear GHSA-g3hv-75wg-m249 (minimatch ReDoS, >=7.0.0 <11.0.1). sdl 1.1.0 (its latest, reached through obsidian-dev-toolkit -> eslint-plugin-obsidianmd) pins eslint-plugin-n 17.10.3, which depends on minimatch 9. eslint-plugin-n 17.24.0 is the same major and depends on no minimatch at all. Dev-only: lint tooling, never shipped in main.js.",
+      "check": "node -e \"const fs=require('node:fs');process.stdout.write(JSON.parse(fs.readFileSync('node_modules/@microsoft/eslint-plugin-sdl/package.json','utf8')).dependencies['eslint-plugin-n'])\"",
+      "expect": "17.10.3",
+      "manualCheck": "Remove the override when sdl declares an eslint-plugin-n of 17.22 or later. Re-run npm audit and lint."
+    },
+    "eslint-plugin-tsdoc": {
+      "section": "overrides",
+      "why": "Scoped override: forces minimatch ^11.0.5 under eslint-plugin-tsdoc only, to clear GHSA-g3hv-75wg-m249 (minimatch ReDoS, >=7.0.0 <11.0.1). eslint-plugin-tsdoc 0.5.4 pins @typescript-eslint/utils ~8.56.0, whose typescript-estree 8.56.1 keeps minimatch 10. It is safe because typescript-estree 8.56 only calls minimatch(filePath, pattern, { dot: true }), which minimatch 11 keeps. Dev-only: lint tooling, never shipped in main.js.",
+      "check": "node -e \"const fs=require('node:fs');process.stdout.write(JSON.parse(fs.readFileSync('node_modules/eslint-plugin-tsdoc/package.json','utf8')).dependencies['@typescript-eslint/utils'])\"",
+      "expect": "~8.56.0",
+      "manualCheck": "Remove the override when eslint-plugin-tsdoc admits @typescript-eslint/utils 8.73 or later (whose typescript-estree takes minimatch 11). Re-run npm audit and lint."
+    },
     "@codemirror/state": {
       "section": "devDependencies",
       "why": "obsidian's peerDependencies names this exact version. A second copy in the tree means two CodeMirror state instances at runtime, so editor extensions would attach to the wrong one.",
@@ -42,7 +56,7 @@
     },
     "glob": {
       "section": "overrides",
-      "why": "Clears GHSA-3g3m-2fjr-6pw4 (AbortSignal cancellation bypass, glob >=9 <=14.0.1; patched 14.0.2). The latest obsidian-integration-testing pins webdriverio 9.27.0, whose @wdio/config and archiver-utils still require glob ^10.2.2 and ^10.0.0. Both call only the retained sync API (sync/globSync), which glob 14 keeps with its CommonJS build, so 14.0.3 preserves their API. No direct dependency update reaches the fix. NEVER take the `npm audit fix --force` remedy: it proposes downgrading obsidian-integration-testing to 1.1.2. minimatch GHSA-g3hv-75wg-m249 is deliberately NOT overridden: eslint-plugin-import-x imports the makeRe export minimatch 11 removed, and the 3.x/8.x consumers call the removed callable default.",
+      "why": "Clears GHSA-3g3m-2fjr-6pw4 (AbortSignal cancellation bypass, glob >=9 <=14.0.1; patched 14.0.2). The latest obsidian-integration-testing pins webdriverio 9.27.0, whose @wdio/config and archiver-utils still require glob ^10.2.2 and ^10.0.0. Both call only the retained sync API (sync/globSync), which glob 14 keeps with its CommonJS build, so 14.0.3 preserves their API. No direct dependency update reaches the fix. NEVER take the `npm audit fix --force` remedy: it proposes downgrading obsidian-integration-testing to 1.1.2.",
       "check": "node -e \"const fs=require('node:fs');for(const p of ['@wdio/config','archiver-utils'])console.log(JSON.parse(fs.readFileSync('node_modules/'+p+'/package.json','utf8')).dependencies.glob)\"",
       "expect": "^10.2.2\n^10.0.0",
       "manualCheck": "Remove the override when both consumers admit >=14.0.2. Re-run npm audit, the project gate and a glob/archive smoke of both consumers."

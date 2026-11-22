@@ -79,14 +79,16 @@ Moving and renaming need no command: a bundle follows its main file. Four comman
 | Plugin | Features | How `File Bundles` differs |
 | --- | --- | --- |
 | [`Att Meta Map`](https://community.obsidian.md/plugins/att-meta-map) | Attachment companion notes; file-metadata properties; source-property mapping | Different scope: bundle file operations and locked visibility; no metadata extraction |
+| [`Attachments Library`](https://community.obsidian.md/plugins/attachments-library) | Sidecar note per attachment in a mirrored library folder; PDF, DOI and ISBN metadata; sidecar follows renames and deletes | Different direction: the declared group follows its main file; no metadata or automatic sidecars |
 | [`Custom Attachment Location`](https://community.obsidian.md/plugins/obsidian-custom-attachment-location) (my plugin) | Per-note attachment destination; folder follows note | Broader grouping: any file can declare any set of files/folders |
 | [`Depends`](https://community.obsidian.md/plugins/depends) | Frontmatter note dependencies; graph links | Different effect: moves and deletes the declared files themselves |
 | [`Documents Bundle`](https://community.obsidian.md/plugins/documents-bundle) | Note-as-folder bundles; assets directory; captures attachments; folder follows note | Broader grouping: arbitrary declared files/folders; no fixed layout or new-attachment capture |
 | [`Media Sidecar Tools`](https://community.obsidian.md/plugins/media-sidecar-tools) | Ctrl-click media sidecars; optional explorer hiding | Different grouping: declares existing files; no note creation; file operations act on the group |
 | [`Nested Notes`](https://community.obsidian.md/plugins/nested-notes) | Drag-and-drop note nesting in a dedicated view | Alternative UI: keeps File Explorer; declared grouping controls its rows |
+| [`Note Companion Folder`](https://community.obsidian.md/plugins/note-companion-folder) | Per-note attachment folder named after the note; reveal it by ribbon, command or menu | Broader grouping: any declared files/folders; moves, renames and deletes them with the main file |
 | [`Sidecars`](https://github.com/awesym/obsidian-sidecars) | Unlisted; companion notes for attachments; orphan cleanup; explorer hiding | Alternative grouping: declarations, not matching names; any number of files/folders |
 
-Last searched for similar plugins on 2026-10-26.
+Last searched for similar plugins on 2026-11-22.
 
 ## Installation
 

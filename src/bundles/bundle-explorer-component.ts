@@ -128,7 +128,7 @@ export class BundleExplorerComponent extends LayoutReadyComponent {
     }
   }
 
-  private getFileExplorerView(): FileExplorerView | undefined {
-    return this.app.workspace.getLeavesOfType(FILE_EXPLORER_VIEW_TYPE)[0]?.view as FileExplorerView | undefined;
+  private getFileExplorerView(): FileExplorerView | null {
+    return (this.app.workspace.getLeavesOfType(FILE_EXPLORER_VIEW_TYPE)[0]?.view as FileExplorerView | undefined) ?? null;
   }
 }

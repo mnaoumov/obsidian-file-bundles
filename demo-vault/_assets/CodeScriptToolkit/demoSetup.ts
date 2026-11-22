@@ -11,7 +11,7 @@ const PLUGIN_ID = 'file-bundles';
  */
 export function runCommand(app: App, commandId: string): void {
   const fullCommandId = `${PLUGIN_ID}:${commandId}`;
-  if (!app.commands.commands[fullCommandId]) {
+  if (!app.commands.findCommand(fullCommandId)) {
     new Notice(`Command ${fullCommandId} is not registered — is the plugin enabled?`);
     return;
   }

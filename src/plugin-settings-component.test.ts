@@ -21,7 +21,7 @@ interface ProtectedBase {
 
 interface RegisteredValidator {
   readonly key: string;
-  readonly validator: (value: string) => string | undefined;
+  readonly validator: (value: string) => null | string;
 }
 
 const protectedBasePrototype = castTo<ProtectedBase>(PluginSettingsComponentBase.prototype);
@@ -45,7 +45,7 @@ describe('PluginSettingsComponent', () => {
   });
 
   describe('registerValidators', () => {
-    type PathsValidator = (paths: string[]) => string | undefined;
+    type PathsValidator = (paths: string[]) => null | string;
 
     function getRegisteredValidators(): RegisteredValidator[] {
       const registered: RegisteredValidator[] = [];
@@ -73,7 +73,7 @@ describe('PluginSettingsComponent', () => {
 
     it('should accept a frontmatter key with content', () => {
       const validator = getRegisteredValidators().find((candidate) => candidate.key === 'frontmatterKey');
-      expect(validator?.validator('file-bundles')).toBeUndefined();
+      expect(validator?.validator('file-bundles')).toBeNull();
     });
 
     /*
@@ -83,7 +83,7 @@ describe('PluginSettingsComponent', () => {
     it('should accept plain paths, globs and well-formed regular expressions as exclusions', () => {
       const validator = getRegisteredValidators().find((candidate) => candidate.key === 'excludedPathPatterns');
       expect(validator).toBeDefined();
-      expect(castTo<PathsValidator>(validator?.validator)(['Archive', 'Attachments/**/*.pdf', String.raw`/^inbox\//i`])).toBeUndefined();
+      expect(castTo<PathsValidator>(validator?.validator)(['Archive', 'Attachments/**/*.pdf', String.raw`/^inbox\//i`])).toBeNull();
     });
 
     it('should reject an exclusion that is a half-typed regular expression', () => {

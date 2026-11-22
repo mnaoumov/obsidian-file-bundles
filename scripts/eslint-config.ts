@@ -4,19 +4,27 @@ import { defineEslintConfigs } from '@mnaoumov/obsidian-dev-toolkit/linters/esli
 import { defineConfig } from 'eslint/config';
 
 export const configs: Linter.Config[] = defineEslintConfigs({
-  customConfigs() {
-    return defineConfig({
-      rules: {
-        'obsidianmd/ui/sentence-case': [
-          'error',
-          {
-            brands: [
-              'React',
-              'Svelte'
-            ]
-          }
-        ]
+  customConfigs(context) {
+    return defineConfig(
+      {
+        rules: {
+          'obsidianmd/ui/sentence-case': [
+            'error',
+            {
+              brands: [
+                'React',
+                'Svelte'
+              ]
+            }
+          ]
+        }
+      },
+      {
+        files: context.allFiles(),
+        rules: {
+          'typescript-dev-toolkit/no-undefined-return-type': 'error'
+        }
       }
-    });
+    );
   }
 });

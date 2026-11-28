@@ -1,4 +1,7 @@
-import type { App } from 'obsidian';
+import type {
+  App,
+  TFile
+} from 'obsidian';
 
 import {
   parseFrontmatter,
@@ -87,6 +90,26 @@ export interface BundleMemberMove {
    * Where the resource is now.
    */
   readonly oldPath: string;
+}
+
+/**
+ * Parameters for {@link createBundleSidecar}.
+ */
+export interface CreateBundleSidecarParams {
+  /**
+   * The Obsidian application instance.
+   */
+  readonly app: App;
+
+  /**
+   * The frontmatter key that marks a declaration.
+   */
+  readonly frontmatterKey: string;
+
+  /**
+   * The non-markdown file the new bundle is built around.
+   */
+  readonly mainPath: string;
 }
 
 /**
@@ -227,6 +250,16 @@ export interface TrashBundlePathsParams {
 
 const VAULT_ROOT_FOLDER_PATH = '.';
 
+/*
+ * Appended to the main file's base name to name its sidecar. The obvious `<name>.<ext>.md` is deliberately not
+ * used: Obsidian strips `.md` from every row it lists, so `report.html.md` beside `report.html` paints two rows
+ * labelled `report`, and nothing on screen says which one is the main file. It would also read as the
+ * filename convention other sidecar plugins use, when this plugin's rule is that the frontmatter key marks a
+ * declaration and the file's name never does.
+ */
+const SIDECAR_NAME_SUFFIX = ' bundle';
+const MARKDOWN_EXTENSION = '.md';
+
 /**
  * Makes a planned set of copies as ONE unit.
  *
@@ -284,6 +317,37 @@ export async function applyBundleMoves(params: ApplyBundleMovesParams): Promise<
     await transaction.rename(move.oldPath, move.newPath);
   }
   await transaction.commit();
+}
+
+/**
+ * Creates a sidecar note declaring a new bundle around a non-markdown file, and answers the note.
+ *
+ * The note sits beside the main file and carries only the `main` entry, anchored `./`, so the user has a
+ * valid, empty bundle to add `files` and `folders` to. The idea comes from `Media Sidecar Tools` (MIT),
+ * which creates a metadata note for a media file; no code was taken from it, since the note written here is
+ * a `file-bundles` declaration rather than a metadata note.
+ *
+ * @param params - The parameters.
+ * @returns A {@link Promise} resolving to the created sidecar note.
+ */
+export async function createBundleSidecar(params: CreateBundleSidecarParams): Promise<TFile> {
+  const {
+    app,
+    frontmatterKey,
+    mainPath
+  } = params;
+
+  const declaringPath = getAvailablePath(app, planBundleSidecarPath(mainPath));
+  const mainEntry = formatBundleMemberEntry({
+    app,
+    declaringPath,
+    member: toMainMember({ declaringPath, mainPath, members: [] })
+  });
+
+  await using transaction = new VaultTransaction({ app });
+  const file = await transaction.create(declaringPath, setFrontmatter('', { [frontmatterKey]: { main: mainEntry } }));
+  await transaction.commit();
+  return file;
 }
 
 /**
@@ -491,6 +555,19 @@ export function planBundleRename(params: PlanBundleRenameParams): BundleMemberMo
   }
 
   return moves;
+}
+
+/**
+ * Answers where the sidecar note of a non-markdown main file goes by default: beside it, named
+ * `<base name> bundle.md`.
+ *
+ * @param mainPath - The path of the main file.
+ * @returns The planned sidecar path, before any collision with an existing file is resolved.
+ */
+export function planBundleSidecarPath(mainPath: string): string {
+  const name = `${basename(mainPath, extname(mainPath))}${SIDECAR_NAME_SUFFIX}${MARKDOWN_EXTENSION}`;
+  const folderPath = dirname(mainPath);
+  return folderPath === VAULT_ROOT_FOLDER_PATH ? name : join(folderPath, name);
 }
 
 /**

@@ -8,6 +8,7 @@ import type {
 } from 'obsidian';
 
 import { ComponentEx } from '@mnaoumov/obsidian-lib/components/component-ex';
+import { isMarkdownFile } from '@mnaoumov/obsidian-lib/file-system';
 import {
   getAvailablePath,
   trashSafe
@@ -20,6 +21,7 @@ import type { BundleIndexComponent } from './bundle-index-component.ts';
 
 import {
   applyBundleCopies,
+  createBundleSidecar,
   planBundleDuplication,
   rewriteBundleDeclaration,
   toDuplicatedDeclaration
@@ -127,6 +129,14 @@ export class FileBundlesComponent extends ComponentEx {
       name: 'Duplicate the bundle the active file belongs to'
     });
 
+    this.commandRegistrar.addCommand({
+      callback: () => {
+        invokeAsyncSafely(() => this.createSidecarOfActiveFile());
+      },
+      id: 'create-sidecar',
+      name: 'Create a bundle sidecar note for the active file'
+    });
+
     this.registerDisposable(this.menuEventRegistrar.registerFileMenuEventHandler((menu, abstractFile) => {
       this.addMenuItems(menu, abstractFile);
     }));
@@ -135,6 +145,16 @@ export class FileBundlesComponent extends ComponentEx {
   private addMenuItems(menu: Menu, abstractFile: TAbstractFile): void {
     const declaration = this.findBundleOf(abstractFile.path);
     if (!declaration) {
+      if (this.canCreateSidecarFor(abstractFile.path)) {
+        menu.addItem((item) => {
+          item
+            .setIcon('file-plus')
+            .setTitle('Create bundle sidecar')
+            .onClick(() => {
+              invokeAsyncSafely(() => this.createSidecar(abstractFile.path));
+            });
+        });
+      }
       return;
     }
 
@@ -155,6 +175,54 @@ export class FileBundlesComponent extends ComponentEx {
           invokeAsyncSafely(() => this.deleteBundle(declaration));
         });
     });
+  }
+
+  /**
+   * Whether a path names a file that a sidecar note could declare a NEW bundle around: an existing file, not
+   * a folder, not a note, and not already a bundle's own file or member.
+   *
+   * A note is refused because it declares its bundle in its own frontmatter, and a file some bundle already
+   * claims is refused because a second declaration would make it a shared dependent by accident.
+   */
+  private canCreateSidecarFor(path: string): boolean {
+    return this.app.vault.getFileByPath(path) !== null && !isMarkdownFile(path) && this.findBundleOf(path) === null;
+  }
+
+  private async createSidecar(mainPath: string): Promise<void> {
+    const sidecar = await createBundleSidecar({
+      app: this.app,
+      frontmatterKey: this.pluginSettingsComponent.settings.frontmatterKey,
+      mainPath
+    });
+
+    // Opened at once, because the note exists to be filled in: its `files` and `folders` are the user's to add.
+    await this.app.workspace.getLeaf(false).openFile(sidecar);
+    this.pluginNoticeComponent.showNotice(`created ${sidecar.path} declaring the bundle of ${mainPath}`);
+  }
+
+  private async createSidecarOfActiveFile(): Promise<void> {
+    const activeFile = this.app.workspace.getActiveFile();
+    if (!activeFile) {
+      this.pluginNoticeComponent.showNotice('no active file');
+      return;
+    }
+
+    if (isMarkdownFile(activeFile)) {
+      this.pluginNoticeComponent.showNotice(
+        `${activeFile.path} is a note, which declares its bundle in its own frontmatter`
+      );
+      return;
+    }
+
+    const declaration = this.findBundleOf(activeFile.path);
+    if (declaration) {
+      this.pluginNoticeComponent.showNotice(
+        `${activeFile.path} already belongs to the bundle of ${declaration.mainPath}`
+      );
+      return;
+    }
+
+    await this.createSidecar(activeFile.path);
   }
 
   /**

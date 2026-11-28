@@ -41,7 +41,7 @@ A copy of the vault ships with every release. You can access it via any of the f
 ## What it does
 
 - **A bundle is declared, not inferred from a naming convention.** A `file-bundles` key in the main file's own frontmatter says which files and folders belong with it, whatever they are called: see [Declaring a bundle](<./demo-vault/02 Declaring a bundle.md>).
-- **Any file can be a main file.** An HTML file, a PDF or an image gets a sidecar note that declares the bundle on its behalf: see [Bundles](<./demo-vault/01 Bundles.md>).
+- **Any file can be a main file.** An HTML file, a PDF or an image gets a sidecar note that declares the bundle on its behalf, created for you from the File Explorer's context menu or a command: see [Bundles](<./demo-vault/01 Bundles.md>).
 - **A locked bundle moves, renames and deletes as one.** Its dependents are hidden in the File Explorer (display only, so they stay linkable) and follow the main file wherever you drag it; unlocking splits them back into independent files: see [Locking and unlocking](<./demo-vault/04 Locking and unlocking.md>).
 - **A bundle duplicates as one.** The copy gets its own dependents and a declaration that names them, unlike Obsidian's **Make a copy**: see [Bundles](<./demo-vault/01 Bundles.md>).
 - **A shared file is never deleted with one of the bundles declaring it.**
@@ -65,12 +65,13 @@ Every path is explicitly relative (`./`, travels with the main file) or rooted (
 
 ## Usage
 
-Moving and renaming need no command: a bundle follows its main file. Four commands cover the rest, with locking and deleting also on the File Explorer's context menu:
+Moving and renaming need no command: a bundle follows its main file. Five commands cover the rest, with locking, deleting and creating a sidecar also on the File Explorer's context menu:
 
 - **`File Bundles`: Show the bundle the active file belongs to**
 - **`File Bundles`: Lock or unlock the bundle the active file belongs to**
 - **`File Bundles`: Delete the bundle the active file belongs to**
 - **`File Bundles`: Duplicate the bundle the active file belongs to**
+- **`File Bundles`: Create a bundle sidecar note for the active file**: on a file that is not a note and belongs to no bundle, creates `<name> bundle.md` beside it, declaring it as the main file, and opens it so you can add `files` and `folders`.
 
 ## See also
 
@@ -83,7 +84,7 @@ Moving and renaming need no command: a bundle follows its main file. Four comman
 | [`Custom Attachment Location`](https://community.obsidian.md/plugins/obsidian-custom-attachment-location) (my plugin) | Per-note attachment destination; folder follows note | Broader grouping: any file can declare any set of files/folders |
 | [`Depends`](https://community.obsidian.md/plugins/depends) | Frontmatter note dependencies; graph links | Different effect: moves and deletes the declared files themselves |
 | [`Documents Bundle`](https://community.obsidian.md/plugins/documents-bundle) | Note-as-folder bundles; assets directory; captures attachments; folder follows note | Broader grouping: arbitrary declared files/folders; no fixed layout or new-attachment capture |
-| [`Media Sidecar Tools`](https://community.obsidian.md/plugins/media-sidecar-tools) | Ctrl-click media sidecars; optional explorer hiding | Different grouping: declares existing files; no note creation; file operations act on the group |
+| [`Media Sidecar Tools`](https://community.obsidian.md/plugins/media-sidecar-tools) | Ctrl-click media sidecars; optional explorer hiding | Different grouping: the sidecar declares a group of files; file operations act on the group |
 | [`Nested Notes`](https://community.obsidian.md/plugins/nested-notes) | Drag-and-drop note nesting in a dedicated view | Alternative UI: keeps File Explorer; declared grouping controls its rows |
 | [`Note Companion Folder`](https://community.obsidian.md/plugins/note-companion-folder) | Per-note attachment folder named after the note; reveal it by ribbon, command or menu | Broader grouping: any declared files/folders; moves, renames and deletes them with the main file |
 | [`Sidecars`](https://github.com/awesym/obsidian-sidecars) | Unlisted; companion notes for attachments; orphan cleanup; explorer hiding | Alternative grouping: declarations, not matching names; any number of files/folders |

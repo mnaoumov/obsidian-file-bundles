@@ -1,5 +1,18 @@
 # CHANGELOG
 
+## 3.1.1
+
+This release has 6 documentation changes. 7 maintenance commits (tests, build, CI, refactoring, dependencies) are not listed.
+
+### Documentation
+
+- say the Open demo vault command is desktop-only
+- refresh the README See also section
+- switch the README badge line to Obsidian downloads and minimum Obsidian version
+- **changelog:** regroup the published release notes for readers
+- make issue attachments optional and strongly encouraged
+- link to the Obsidian resources page
+
 ## 3.1.0
 
 This release has 1 new feature and 6 documentation changes. 10 maintenance commits (tests, build, CI, refactoring, dependencies) are not listed.

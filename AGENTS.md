@@ -22,6 +22,8 @@ Idea captured from a `Discord` exchange with `rakudo` (2026-08-24 to 2026-08-26)
 
 **All four bundle operations are built.** Duplicate was the last of them, and it waited for `VaultTransaction` to gain a `copy`: `create()` takes a `string`, so the alternatives were the hand-rolled rollback this plugin's invariants forbid, or a command silently correct for notes and lossy for every attachment. Unlike the other three it reacts to no vault event, because Obsidian raises none for a duplication — it is a command of this plugin's own, and it deliberately does not consult the unlocked list, since nothing happens to the original bundle at all.
 
+**A sidecar can be created from the File Explorer or a command.** On a non-markdown file that no bundle claims, `createBundleSidecar` writes `<base name> bundle.md` beside it carrying only an anchored `main`, through `VaultTransaction.create`, and the command opens it. The name is chosen by `planBundleSidecarPath`, and the invariant on sidecar names below is why it is never `<file>.md`. A note is refused (it declares inline), and so is any file a bundle already owns or claims. The idea came from `Media Sidecar Tools` (MIT); no code was taken from it.
+
 ## The declaration
 
 One mechanism, two uses: a `file-bundles` frontmatter key in a markdown file.

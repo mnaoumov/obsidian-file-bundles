@@ -19,6 +19,7 @@ import {
   planBundleDuplication,
   planBundleMove,
   planBundleRename,
+  planBundleSidecarPath,
   rewriteBundleDeclaration,
   toDuplicatedDeclaration,
   toMovedDeclaration,
@@ -546,6 +547,21 @@ describe('planBundleDuplication', () => {
       { newPath: 'Beta/report.html', oldPath: 'Alpha/report.html' },
       { newPath: 'Sidecars/report.html.md', oldPath: 'Sidecars/report.html.md' }
     ]);
+  });
+});
+
+describe('planBundleSidecarPath', () => {
+  it('should place the sidecar beside the main file, named after its base name', () => {
+    expect(planBundleSidecarPath('Alpha/report.html')).toBe('Alpha/report bundle.md');
+  });
+
+  // The vault root is `dirname`'s `.`, which must not become a `./` prefix on the sidecar path.
+  it('should name a root-level sidecar with no folder prefix', () => {
+    expect(planBundleSidecarPath('photo.png')).toBe('photo bundle.md');
+  });
+
+  it('should keep every dot but the extension in the base name', () => {
+    expect(planBundleSidecarPath('Alpha/archive.tar.gz')).toBe('Alpha/archive.tar bundle.md');
   });
 });
 

@@ -184,10 +184,10 @@ describe('FileBundlesComponent', () => {
    * Rename and Delete Handler refuse to load beside this plugin, so what is NOT registered is a correctness
    * property rather than tidiness.
    */
-  it('should register its four commands and patch nothing', () => {
+  it('should register its five commands and patch nothing', () => {
     createComponent();
     expect(commands.map((command) => command.id))
-      .toEqual(['show-bundle', 'toggle-lock', 'delete-bundle', 'duplicate-bundle']);
+      .toEqual(['show-bundle', 'toggle-lock', 'delete-bundle', 'duplicate-bundle', 'create-sidecar']);
   });
 
   it('should say so when there is no active file', () => {
@@ -494,6 +494,112 @@ describe('FileBundlesComponent', () => {
       createComponent();
 
       expect(openFileMenu(SIDECAR_PATH).map((item) => item.title)).toEqual(['Unlock bundle', 'Delete bundle']);
+    });
+  });
+
+  describe('creating a bundle sidecar', () => {
+    function readFile(path: string): string {
+      const file = app.vault.getFileByPath(path);
+      if (!file) {
+        throw new Error(`The test vault has no ${path}`);
+      }
+      return app.vault.readSync__(file);
+    }
+
+    /*
+     * Named `<base name> bundle.md`, never `alpha.jpg.md`: Obsidian strips `.md` from every row, so the
+     * obvious name would paint two rows reading the same.
+     */
+    it('should create a sidecar declaring the active file and open it', async () => {
+      await activate('Alpha/alpha.jpg');
+      createComponent();
+
+      invokeCommand('create-sidecar');
+      await sleep({ milliseconds: SETTLE_DELAY_IN_MS });
+
+      const content = readFile('Alpha/alpha bundle.md');
+      expect(content).toContain('file-bundles:');
+      expect(content).toContain('main: "[[./alpha.jpg]]"');
+      expect(app.workspace.getActiveFile()?.path).toBe('Alpha/alpha bundle.md');
+      expect(showNoticeMock)
+        .toHaveBeenCalledWith('created Alpha/alpha bundle.md declaring the bundle of Alpha/alpha.jpg');
+    });
+
+    it('should pick a free name when the default one is taken', async () => {
+      app.vault.createSync__('Alpha/alpha bundle.md', 'taken');
+      await activate('Alpha/alpha.jpg');
+      createComponent();
+
+      invokeCommand('create-sidecar');
+      await sleep({ milliseconds: SETTLE_DELAY_IN_MS });
+
+      expect(readFile('Alpha/alpha bundle.md')).toBe('taken');
+      expect(readFile('Alpha/alpha bundle 1.md')).toContain('main: "[[./alpha.jpg]]"');
+    });
+
+    it('should refuse a note, which declares its bundle in its own frontmatter', async () => {
+      await activate('Alpha/alpha.md');
+      createComponent();
+
+      invokeCommand('create-sidecar');
+      await sleep({ milliseconds: SETTLE_DELAY_IN_MS });
+
+      expect(showNoticeMock)
+        .toHaveBeenCalledWith('Alpha/alpha.md is a note, which declares its bundle in its own frontmatter');
+      expect(app.vault.getFileByPath('Alpha/alpha bundle.md')).toBeNull();
+    });
+
+    it('should refuse a file that already belongs to a bundle', async () => {
+      await activate('Alpha/assets/diagram.png');
+      declare({
+        declaringPath: 'Alpha/alpha.md',
+        members: [{
+          anchoring: BundleMemberAnchoring.Relative,
+          isAnchorPrefixMissing: false,
+          isWikilink: true,
+          kind: BundleMemberKind.File,
+          path: 'Alpha/assets/diagram.png'
+        }]
+      });
+      createComponent();
+
+      invokeCommand('create-sidecar');
+      await sleep({ milliseconds: SETTLE_DELAY_IN_MS });
+
+      expect(showNoticeMock)
+        .toHaveBeenCalledWith('Alpha/assets/diagram.png already belongs to the bundle of Alpha/alpha.md');
+      expect(app.vault.getFileByPath('Alpha/assets/diagram bundle.md')).toBeNull();
+    });
+
+    it('should say so when there is no active file', async () => {
+      createComponent();
+
+      invokeCommand('create-sidecar');
+      await sleep({ milliseconds: SETTLE_DELAY_IN_MS });
+
+      expect(showNoticeMock).toHaveBeenCalledWith('no active file');
+    });
+
+    it('should offer the menu item on an undeclared non-markdown file, and create the sidecar from it', async () => {
+      app.vault.createSync__('Alpha/report.pdf', 'report');
+      createComponent();
+
+      const items = openFileMenu('Alpha/report.pdf');
+      expect(items.map((item) => item.title)).toEqual(['Create bundle sidecar']);
+      expect(items[0]?.icon).toBe('file-plus');
+
+      items[0]?.onClick();
+      await sleep({ milliseconds: SETTLE_DELAY_IN_MS });
+
+      expect(readFile('Alpha/report bundle.md')).toContain('main: "[[./report.pdf]]"');
+    });
+
+    it('should not offer the menu item on a note or a folder', () => {
+      app.vault.createSync__('Alpha/alpha.md', '');
+      createComponent();
+
+      expect(openFileMenu('Alpha/alpha.md')).toEqual([]);
+      expect(openFileMenu('Alpha')).toEqual([]);
     });
   });
 

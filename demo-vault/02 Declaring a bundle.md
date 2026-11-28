@@ -31,6 +31,8 @@ file-bundles:
 ---
 ```
 
+You do not have to write a sidecar by hand. Right-click any file that is not a note and belongs to no bundle, for example an image or a PDF, and choose **Create bundle sidecar**, or run **`File Bundles`: Create a bundle sidecar note for the active file** with that file open. The plugin creates `<name> bundle.md` beside it with only the `main` entry, and opens it so you can add `files` and `folders`.
+
 ## The keys
 
 - `main`

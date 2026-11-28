@@ -68,7 +68,7 @@ function createDeclaration(overrides: DeclarationOverrides = {}): BundleDeclarat
         path
       }))
     ],
-    ...overrides.renameDependents !== undefined && { renameDependents: overrides.renameDependents }
+    ...(overrides.renameDependents !== undefined && { renameDependents: overrides.renameDependents })
   };
 }
 

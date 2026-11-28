@@ -123,7 +123,7 @@ describe('BundleExplorerComponent', () => {
 
   function classesOf(path: string): string[] {
     const elements = elementsByPath.get(path);
-    return [...elements?.el.classList ?? [], ...elements?.selfEl.classList ?? []];
+    return [...(elements?.el.classList ?? []), ...(elements?.selfEl.classList ?? [])];
   }
 
   it('should mark a main file and fold its dependent away', async () => {

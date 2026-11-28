@@ -234,7 +234,7 @@ export class BundleIndex {
   }
 
   private toDeclarations(declaringPaths: Set<string> | undefined): BundleDeclaration[] {
-    return [...declaringPaths ?? []]
+    return [...(declaringPaths ?? [])]
       .map((declaringPath) => this.declarationsByDeclaringPath.get(declaringPath))
       .filter((declaration) => declaration !== undefined);
   }
